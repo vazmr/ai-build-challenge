@@ -17,7 +17,7 @@ export function EventActions({ eventId }: { eventId: string }) {
         {cur === 'saved' ? <BookmarkCheck aria-hidden className="size-4 text-brand" /> : <Bookmark aria-hidden className="size-4" />} {cur === 'saved' ? 'Saved' : 'Save'}
       </Button>
       <Button variant={cur === 'going' ? 'secondary' : 'primary'} aria-pressed={cur === 'going'} onClick={() => update((s) => toggleGoing(s, me, eventId))}>
-        <CalendarCheck aria-hidden className="size-4" /> {cur === 'going' ? 'Going (demo RSVP) · Cancel' : 'RSVP (demo)'}
+        <CalendarCheck aria-hidden className="size-4" /> {cur === 'going' ? 'Going · Cancel' : 'RSVP'}
       </Button>
     </div>
   )

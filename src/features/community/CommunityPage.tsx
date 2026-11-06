@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Badge, Button, Card, EmptyState, Field, Input, PageHeader, Select, Tags, Textarea } from '../../components/shared/ui'
 import { parseList } from '../../utils/parseList'
+import { CoverArt } from '../../components/shared/CoverArt'
 import { useAppState } from '../../hooks/useAppState'
 import { createCommunity } from '../../services/communityService'
 
@@ -32,7 +33,7 @@ export function CommunityPage() {
 
   return (
     <div>
-      <PageHeader title="Community" description="Informal, student-created interest groups with discussions. These are not official Temple clubs or organizations."
+      <PageHeader title="Community" description="Informal student interest groups, not official Temple clubs."
         actions={<div className="flex gap-2"><Link to="/organizations" className="inline-flex min-h-10 items-center rounded-lg border border-border bg-surface px-3.5 text-sm font-semibold hover:bg-surface-muted">Browse organizations</Link><Button variant="primary" onClick={() => setCreating((c) => !c)} aria-expanded={creating}><Plus aria-hidden className="size-4" /> Start a group</Button></div>} />
 
       {creating && (
@@ -65,12 +66,15 @@ export function CommunityPage() {
             const following = state.follows.some((f) => f.followerId === activeStudent.id && f.targetType === 'community' && f.targetId === c.id)
             const threads = state.threads.filter((t) => t.communityId === c.id).length
             return (
-              <Card key={c.id}>
+              <Card key={c.id} className="!p-0 overflow-hidden">
+                <CoverArt seed={c.id + c.category} className="h-10" />
+                <div className="p-4">
                 <div className="flex flex-wrap gap-1.5"><Badge>Informal group</Badge>{member && <Badge tone="success">Member</Badge>}{following && <Badge tone="info">Following</Badge>}</div>
                 <h2 className="mt-2 font-semibold"><Link to={`/community/${c.id}`} className="hover:underline">{c.name}</Link></h2>
                 <p className="mt-1 text-sm text-muted-foreground">{c.description}</p>
                 <div className="mt-2"><Tags tags={c.tags} /></div>
                 <p className="mt-2 text-xs text-muted-foreground">{threads} discussion{threads === 1 ? '' : 's'}</p>
+                </div>
               </Card>
             )
           })}

@@ -45,9 +45,9 @@ function MonthView() {
           )
         })}
       </div>
-      <p className="mt-2 text-xs text-muted-foreground">Red dots are events you saved or RSVP’d to (demo). Grey dots are other sample events.</p>
+      <p className="mt-2 text-xs text-muted-foreground">Red dots are events you saved or RSVP’d to. Grey dots are other events.</p>
       <h3 className="mb-2 mt-4 font-semibold">{selectedEvents.length ? `Events on ${selected}` : `Nothing on ${selected}`}</h3>
-      <div className="grid gap-3 md:grid-cols-2">{selectedEvents.map((e) => <EventCard key={e.id} event={e} />)}</div>
+      <div key={String(selectedEvents.length)} className="motion-stagger grid gap-3 md:grid-cols-2">{selectedEvents.map((e) => <EventCard key={e.id} event={e} />)}</div>
     </div>
   )
 }
@@ -67,7 +67,7 @@ export function CalendarPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title="My Campus Calendar" description="Your saved and RSVP’d events (demo), plus all sample events." />
+      <PageHeader title="My Campus Calendar" description="Your saved and RSVP’d events, plus everything coming up." />
       <Tabs<View> label="Calendar views" value={view} onChange={setView} tabs={[{ id: 'month', label: 'Month' }, { id: 'agenda', label: 'My agenda' }, { id: 'list', label: 'All upcoming' }]} />
       {view === 'month' && <MonthView />}
       {view === 'agenda' && (mine.length === 0 ? (

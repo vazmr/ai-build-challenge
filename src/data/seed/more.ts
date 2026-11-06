@@ -1,3 +1,4 @@
+import { AUDIO, EVENT_PHOTOS, MEDIA } from './media'
 import type { CampusEvent, Community, CommunityMembership, DiscussionThread, Follow, PersistedAppState, Post, Project, StudentProfile, ThreadReply } from '../../types'
 
 // ALL SEED CONTENT IS FICTIONAL. Extra demo content so the prototype feels populated.
@@ -9,7 +10,7 @@ const privacy = { overview: 'temple-only', blog: 'public', collections: 'public'
 const stu = (id: string, displayName: string, extra: Partial<StudentProfile>): StudentProfile =>
   ({ id, displayName, interests: [], skills: [], privacy: { ...privacy }, createdAt: NOW, updatedAt: NOW, ...extra })
 const post = (p: Partial<Post> & Pick<Post, 'id' | 'authorId' | 'type' | 'createdAt'>): Post => ({ tags: [], visibility: 'public', updatedAt: p.createdAt, ...p })
-const event = (e: Omit<CampusEvent, 'status' | 'isDemoContent' | 'campus'>): CampusEvent => ({ status: 'published', isDemoContent: true, campus: 'Main Campus', ...e })
+const event = (e: Omit<CampusEvent, 'status' | 'campus'>): CampusEvent => ({ status: 'published', campus: 'Main Campus', ...e })
 const community = (c: Omit<Community, 'visibility' | 'isOfficialOrganization'>): Community => ({ visibility: 'open', isOfficialOrganization: false, ...c })
 const cm = (id: string, communityId: string, studentId: string, role: CommunityMembership['role'] = 'participant'): CommunityMembership => ({ id, communityId, studentId, role, status: 'active' })
 const project = (p: Partial<Project> & Pick<Project, 'id' | 'ownerId' | 'title' | 'description' | 'category'>): Project =>
@@ -30,19 +31,19 @@ export function withMoreContent(s: PersistedAppState): PersistedAppState {
     ],
     posts: [
       ...s.posts,
-      post({ id: 'post-15', authorId: 'stu-casey', type: 'album', title: 'Thrift haul and what I made from it', body: 'Five pieces, $23 total.', mediaLabel: 'Album: 5 outfits', tags: ['fashion', 'art'], createdAt: at('11-05', '08:00') }),
-      post({ id: 'post-16', authorId: 'stu-devon', type: 'video', title: '30-second game jam recap', body: 'We built a platformer in 48 hours. Rough, but ours.', mediaLabel: 'Video: 0:30 recap', tags: ['gaming', 'tech'], createdAt: at('11-04', '23:10') }),
+      post({ id: 'post-15', authorId: 'stu-casey', type: 'album', title: 'Thrift haul and what I made from it', body: 'Five pieces, $23 total.', mediaLabel: 'Album: 5 outfits', mediaUrls: MEDIA.thrift, tags: ['fashion', 'art'], createdAt: at('11-05', '08:00') }),
+      post({ id: 'post-16', authorId: 'stu-devon', type: 'video', title: '30-second game jam recap', body: 'We built a platformer in 48 hours. Rough, but ours.', mediaLabel: 'Video: 0:30 recap', mediaUrls: MEDIA.gameJam, tags: ['gaming', 'tech'], createdAt: at('11-04', '23:10') }),
       post({ id: 'post-17', authorId: 'stu-priya', type: 'discussion', title: 'How do you validate an idea before building it?', body: 'Surveys, interviews, or a quick landing page? What worked for you?', tags: ['entrepreneurship', 'career'], createdAt: at('11-04', '19:30') }),
       post({ id: 'post-18', authorId: 'stu-marcus', type: 'text', body: 'Pickup basketball Thursday at 7. All levels welcome, bring water.', tags: ['student-life'], createdAt: at('11-04', '16:20') }),
       post({ id: 'post-19', authorId: 'stu-casey', type: 'project', title: 'Campus Style Zine is recruiting', body: 'Need photographers and a layout person for issue 2.', relatedId: 'proj-5', tags: ['fashion', 'photography'], createdAt: at('11-03', '21:00') }),
       post({ id: 'post-20', authorId: 'stu-riley', type: 'quote', title: 'Writing this on my desk', body: '"Make something every day, even if it is small."', linkUrl: 'https://example.com/another-quote', tags: ['art'], createdAt: at('11-03', '07:45') }),
       post({ id: 'post-21', authorId: 'stu-sam', type: 'resource', title: 'Quiet study spots (student tips)', body: 'A short list of student-submitted tips. Not official information.', relatedId: 'res-peer-tips', tags: ['study', 'student-life'], createdAt: at('11-02', '20:15') }),
-      post({ id: 'post-22', authorId: 'stu-devon', type: 'audio', title: 'Chiptune loop for the jam', body: 'Free to use if you credit me.', mediaLabel: 'Audio: 1:12 chiptune loop', tags: ['music', 'gaming'], createdAt: at('11-02', '14:05') }),
-      post({ id: 'post-23', authorId: 'stu-priya', organizationId: 'org-founders', type: 'event', title: 'Startup Pitch Night (demo)', body: 'Practice a 3-minute pitch and get friendly feedback.', relatedId: 'ev-pitch', tags: ['entrepreneurship'], createdAt: at('11-02', '10:00') }),
-      post({ id: 'post-24', authorId: 'stu-marcus', type: 'photo', title: 'Sunrise run, campus loop', body: 'Cold, quiet, perfect.', mediaLabel: 'Photo: campus loop at sunrise', tags: ['philly', 'student-life'], createdAt: at('11-01', '07:30') }),
+      post({ id: 'post-22', authorId: 'stu-devon', type: 'audio', title: 'Chiptune loop for the jam', body: 'Free to use if you credit me.', mediaLabel: 'Audio: 1:12 chiptune loop', mediaUrls: MEDIA.beatCover, audioUrl: AUDIO.chiptune, tags: ['music', 'gaming'], createdAt: at('11-02', '14:05') }),
+      post({ id: 'post-23', authorId: 'stu-priya', organizationId: 'org-founders', type: 'event', title: 'Startup Pitch Night', body: 'Practice a 3-minute pitch and get friendly feedback.', relatedId: 'ev-pitch', tags: ['entrepreneurship'], createdAt: at('11-02', '10:00') }),
+      post({ id: 'post-24', authorId: 'stu-marcus', type: 'photo', title: 'Sunrise run, campus loop', body: 'Cold, quiet, perfect.', mediaLabel: 'Photo: campus loop at sunrise', mediaUrls: MEDIA.sunriseRun, tags: ['philly', 'student-life'], createdAt: at('11-01', '07:30') }),
       post({ id: 'post-25', authorId: 'stu-taylor', type: 'text', body: 'Hack night next week. Beginners welcome, I will help you set up your environment.', tags: ['tech', 'study'], createdAt: at('10-31', '18:00') }),
-      post({ id: 'post-26', authorId: 'stu-alex', organizationId: 'org-film', type: 'organization', title: 'Demo Film Collective: screening night recap', body: 'Thanks to everyone who shared a short. See our page for what is next.', relatedId: 'org-film', tags: ['film'], createdAt: at('10-30', '22:00') }),
-      post({ id: 'post-27', authorId: 'stu-casey', type: 'photo', title: 'Zine cover draft', body: 'Which colorway reads better in print?', mediaLabel: 'Photo: zine cover draft', tags: ['fashion', 'art'], createdAt: at('10-30', '11:00') }),
+      post({ id: 'post-26', authorId: 'stu-alex', organizationId: 'org-film', type: 'organization', title: 'Film Collective: screening night recap', body: 'Thanks to everyone who shared a short. See our page for what is next.', relatedId: 'org-film', tags: ['film'], createdAt: at('10-30', '22:00') }),
+      post({ id: 'post-27', authorId: 'stu-casey', type: 'photo', title: 'Zine cover draft', body: 'Which colorway reads better in print?', mediaLabel: 'Photo: zine cover draft', mediaUrls: MEDIA.zine, tags: ['fashion', 'art'], createdAt: at('10-30', '11:00') }),
       post({ id: 'post-28', authorId: 'stu-morgan', type: 'link', title: 'Budgeting template for student orgs', body: 'A simple spreadsheet structure I use. Adapt freely.', linkUrl: 'https://example.com/budget-template', tags: ['entrepreneurship', 'career'], createdAt: at('10-29', '12:00') }),
     ],
     follows: [
@@ -62,19 +63,34 @@ export function withMoreContent(s: PersistedAppState): PersistedAppState {
     ],
     events: [
       ...s.events,
-      event({ id: 'ev-gym', title: 'Open Gym Night', description: 'Pickup basketball and volleyball. Fictional sample event.', category: 'Sports & Recreation', startAt: at('11-06', '19:00'), endAt: at('11-06', '21:00'), locationName: 'Howard Gittis Student Center', priceLabel: 'Free' }),
-      event({ id: 'ev-resume', title: 'Resume Clinic', description: 'Drop in for friendly resume feedback from peers. Fictional sample event.', category: 'Professional', startAt: at('11-10', '14:00'), endAt: at('11-10', '16:00'), locationName: 'Annenberg Hall', priceLabel: 'Free' }),
-      event({ id: 'ev-game', title: 'Game Night Tournament', description: 'Board games and console brackets. Fictional sample event.', category: 'Social', startAt: at('11-16', '18:00'), endAt: at('11-16', '21:00'), locationName: 'TECH Center', priceLabel: 'Free' }),
-      event({ id: 'ev-swap', title: 'Fashion Swap', description: 'Bring something, take something. Fictional sample event.', category: 'Arts & Culture', startAt: at('11-17', '12:00'), endAt: at('11-17', '15:00'), locationName: 'Howard Gittis Student Center', priceLabel: 'Free' }),
-      event({ id: 'ev-pitch', title: 'Startup Pitch Night', description: 'Practice a 3-minute pitch with friendly feedback. Fictional sample event.', hostOrganizationId: 'org-founders', category: 'Professional', startAt: at('11-18', '18:00'), endAt: at('11-18', '20:30'), locationName: 'Tuttleman Learning Center', priceLabel: 'Free' }),
-      event({ id: 'ev-jazz', title: 'Jazz on the Lawn', description: 'Live student jazz ensembles. Fictional sample event.', hostOrganizationId: 'org-radio', category: 'Music & Entertainment', startAt: at('11-19', '16:00'), endAt: at('11-19', '18:00'), locationName: 'Campus lawn', priceLabel: 'Free' }),
-      event({ id: 'ev-film', title: 'Student Film Screening Night', description: 'Short films by students. Fictional sample event.', hostOrganizationId: 'org-film', category: 'Arts & Culture', startAt: at('11-20', '19:00'), endAt: at('11-20', '21:30'), locationName: 'Charles Library', priceLabel: 'Free' }),
-      event({ id: 'ev-study', title: 'Finals Study Jam', description: 'Quiet tables and snacks. Fictional sample event.', category: 'Academic', startAt: at('11-21', '10:00'), endAt: at('11-21', '17:00'), locationName: 'Charles Library', priceLabel: 'Free' }),
+      event({ id: 'ev-gym', coverUrl: EVENT_PHOTOS['ev-gym'], title: 'Open Gym Night', description: 'Pickup basketball and volleyball.', category: 'Sports & Recreation', startAt: at('11-06', '19:00'), endAt: at('11-06', '21:00'), locationName: 'Howard Gittis Student Center', priceLabel: 'Free' }),
+      event({ id: 'ev-resume', title: 'Resume Clinic', description: 'Drop in for friendly resume feedback from peers.', category: 'Professional', startAt: at('11-10', '14:00'), endAt: at('11-10', '16:00'), locationName: 'Annenberg Hall', priceLabel: 'Free' }),
+      event({ id: 'ev-game', title: 'Game Night Tournament', description: 'Board games and console brackets.', category: 'Social', startAt: at('11-16', '18:00'), endAt: at('11-16', '21:00'), locationName: 'TECH Center', priceLabel: 'Free' }),
+      event({ id: 'ev-swap', coverUrl: EVENT_PHOTOS['ev-swap'], title: 'Fashion Swap', description: 'Bring something, take something.', category: 'Arts & Culture', startAt: at('11-17', '12:00'), endAt: at('11-17', '15:00'), locationName: 'Howard Gittis Student Center', priceLabel: 'Free' }),
+      event({ id: 'ev-pitch', title: 'Startup Pitch Night', description: 'Practice a 3-minute pitch with friendly feedback.', hostOrganizationId: 'org-founders', category: 'Professional', startAt: at('11-18', '18:00'), endAt: at('11-18', '20:30'), locationName: 'Tuttleman Learning Center', priceLabel: 'Free' }),
+      event({ id: 'ev-jazz', coverUrl: EVENT_PHOTOS['ev-jazz'], title: 'Jazz on the Lawn', description: 'Live student jazz ensembles.', hostOrganizationId: 'org-radio', category: 'Music & Entertainment', startAt: at('11-19', '16:00'), endAt: at('11-19', '18:00'), locationName: 'Campus lawn', priceLabel: 'Free' }),
+      event({ id: 'ev-film', coverUrl: EVENT_PHOTOS['ev-film'], title: 'Student Film Screening Night', description: 'Short films by students.', hostOrganizationId: 'org-film', category: 'Arts & Culture', startAt: at('11-20', '19:00'), endAt: at('11-20', '21:30'), locationName: 'Charles Library', priceLabel: 'Free' }),
+      event({ id: 'ev-study', title: 'Finals Study Jam', description: 'Quiet tables and snacks.', category: 'Academic', startAt: at('11-21', '10:00'), endAt: at('11-21', '17:00'), locationName: 'Charles Library', priceLabel: 'Free' }),
     ],
     eventParticipations: [
       ...s.eventParticipations,
       { id: 'ep-4', eventId: 'ev-whip', studentId: 'stu-taylor', state: 'going', updatedAt: NOW },
       { id: 'ep-5', eventId: 'ev-pitch', studentId: 'stu-morgan', state: 'going', updatedAt: NOW },
+      ...(
+        [
+          ['ev-today', ['stu-riley', 'stu-sam', 'stu-marcus', 'stu-casey', 'stu-priya']],
+          ['ev-whip', ['stu-sam', 'stu-riley', 'stu-casey', 'stu-devon', 'stu-marcus', 'stu-priya']],
+          ['ev-art', ['stu-riley', 'stu-casey', 'stu-alex', 'stu-morgan']],
+          ['ev-producers', ['stu-sam', 'stu-devon']],
+          ['ev-careers', ['stu-priya', 'stu-morgan', 'stu-taylor', 'stu-alex', 'stu-devon']],
+          ['ev-hack', ['stu-taylor', 'stu-devon', 'stu-priya']],
+          ['ev-mic', ['stu-sam', 'stu-casey', 'stu-riley', 'stu-marcus', 'stu-alex', 'stu-taylor', 'stu-devon']],
+          ['ev-5k', ['stu-marcus']],
+          ['ev-pitch', ['stu-priya', 'stu-alex', 'stu-taylor', 'stu-devon', 'stu-riley']],
+          ['ev-film', ['stu-alex', 'stu-morgan', 'stu-taylor', 'stu-riley', 'stu-casey', 'stu-sam']],
+          ['ev-jazz', ['stu-sam', 'stu-riley']],
+        ] as [string, string[]][]
+      ).flatMap(([eventId, ids]) => ids.filter((id) => !(eventId === 'ev-whip' && id === 'stu-taylor')).map((studentId) => ({ id: `ep-${eventId}-${studentId}`, eventId, studentId, state: 'going' as const, updatedAt: NOW }))),
     ],
     communities: [
       ...s.communities,

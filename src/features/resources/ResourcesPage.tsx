@@ -1,6 +1,7 @@
 import { Bookmark, BookmarkCheck, MapPin, Search, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { OPEN_ASSISTANT_EVENT } from '../assistant/AssistantWidget'
 import { Badge, Button, Card, EmptyState, Input, PageHeader } from '../../components/shared/ui'
 import { useAppState } from '../../hooks/useAppState'
 import { isSaved, toggleSaved } from '../../services/socialService'
@@ -16,7 +17,7 @@ const NEEDS: { label: string; cat: Cat }[] = [
   { label: 'Feeling overwhelmed', cat: 'wellness' }, { label: 'Paying for school', cat: 'financial' }, { label: 'Meeting people', cat: 'campus-life' },
 ]
 const SOURCE: Record<Resource['sourceType'], { label: string; tone: 'success' | 'info' | 'warning' }> = {
-  official: { label: 'Official', tone: 'success' }, 'student-submitted': { label: 'Student-submitted', tone: 'info' }, demo: { label: 'Demo entry', tone: 'warning' },
+  official: { label: 'Official', tone: 'success' }, 'student-submitted': { label: 'Student-submitted', tone: 'info' }, unverified: { label: 'Not yet verified', tone: 'warning' },
 }
 
 export function ResourcesPage() {
@@ -28,8 +29,8 @@ export function ResourcesPage() {
 
   return (
     <div>
-      <PageHeader title="Resources" description="A directory and support navigator. Entries here are demo placeholders, so confirm details with official Temple sources."
-        actions={<Link to="/assistant" className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-brand px-3.5 text-sm font-semibold text-brand-foreground hover:bg-brand-hover"><Sparkles aria-hidden className="size-4" /> Ask the assistant</Link>} />
+      <PageHeader title="Resources" description="Find support, services and opportunities. Confirm details with official Temple sources."
+        actions={<button type="button" onClick={() => window.dispatchEvent(new Event(OPEN_ASSISTANT_EVENT))} className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-brand px-3.5 text-sm font-semibold text-brand-foreground hover:bg-brand-hover"><Sparkles aria-hidden className="size-4" /> Ask the assistant</button>} />
       <div className="relative mb-3 max-w-md">
         <Search aria-hidden className="pointer-events-none absolute left-3 top-3 size-4 text-muted-foreground" />
         <Input aria-label="Search resources" placeholder="Search services, support and opportunities" className="pl-9" value={query} onChange={(e) => setQuery(e.target.value)} />
@@ -50,7 +51,7 @@ export function ResourcesPage() {
               <h3 className="mt-2 font-semibold">{r.title}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{r.description}</p>
               {r.locationName && <p className="mt-2 flex items-center gap-1 text-sm"><MapPin aria-hidden className="size-3.5" /> {r.locationName} <Link to="/map" className="text-brand hover:underline">(see map)</Link></p>}
-              <p className="mt-2 text-xs text-muted-foreground">{r.officialUrl ? 'Official link provided.' : 'No verified official link, contact, hours or eligibility in this prototype.'}</p>
+              <p className="mt-2 text-xs text-muted-foreground">{r.officialUrl ? 'Official link provided.' : 'Not yet verified: check official Temple sources for links, hours, contacts and eligibility.'}</p>
               <div className="mt-3"><Button aria-pressed={saved} onClick={() => update((s) => toggleSaved(s, activeStudent.id, 'resource', r.id))}>{saved ? <BookmarkCheck aria-hidden className="size-4 text-brand" /> : <Bookmark aria-hidden className="size-4" />} {saved ? 'Saved' : 'Save'}</Button></div>
             </Card>
           )

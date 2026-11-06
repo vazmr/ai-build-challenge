@@ -1,7 +1,7 @@
 import { ArrowDown, ArrowUp, Ban, MessageCircle, Pin, UserCheck, UserPlus } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { AccessDenied, Avatar, Badge, Button, Card, EmptyState, Field, Input, Select, Tabs, Tags, Textarea } from '../../components/shared/ui'
+import { AccessDenied, ActionMenu, ActionMenuItem, Avatar, Badge, Button, Card, EmptyState, Field, Input, Select, Tabs, Tags, Textarea } from '../../components/shared/ui'
 import { useAppState } from '../../hooks/useAppState'
 import { isBlocked, toggleBlock } from '../../services/blockService'
 import { ensureDirect } from '../../services/messagingService'
@@ -17,7 +17,7 @@ import { dayKey, formatDay } from '../../utils/format'
 import { parseList } from '../../utils/parseList'
 import { CommentThread } from '../feed/CommentThread'
 
-const VIS_LABEL: Record<Visibility, string> = { public: 'Public', 'temple-only': 'Temple-only (simulated)', private: 'Private' }
+const VIS_LABEL: Record<Visibility, string> = { public: 'Public', 'temple-only': 'Temple-only', private: 'Private' }
 const PORTFOLIO_CATEGORIES = ['Photography', 'Graphic Design', 'Music/Audio', 'Film/Video', 'Writing', 'Apps & Websites', 'Research', 'Entrepreneurship']
 const THEMES = [0, 1, 2, 3, 4, 5, 6, 7]
 const VIS_OPTIONS = (Object.keys(VIS_LABEL) as Visibility[]).map((v) => <option key={v} value={v}>{VIS_LABEL[v]}</option>)
@@ -169,13 +169,14 @@ export function ProfilePage() {
   const [customizing, setCustomizing] = useState(false)
 
   const profile = state.students.find((s) => s.id === userId)
-  if (!profile) return <EmptyState title="Profile not found" action={<Link to="/feed" className="text-sm font-semibold text-brand">Back to Feed</Link>} />
+  if (!profile) return <EmptyState title="Profile not found" description="This profile doesn’t exist or isn’t shared with you." action={<span className="flex flex-wrap justify-center gap-x-4 gap-y-2"><Link to="/community" className="text-sm font-semibold text-brand hover:underline">Find people in Community</Link><Link to="/feed" className="text-sm font-semibold text-brand hover:underline">Go to Feed</Link></span>} />
 
   const me = activeStudent.id
   const own = me === profile.id
   const following = isFollowing(state, me, 'student', profile.id)
   const blocked = isBlocked(state, me, profile.id)
   const metrics = profileMetrics(state, profile.id)
+  const sharedInterests = profile.interests.filter((t) => activeStudent.interests.includes(t)).slice(0, 4)
   const can = (section: ProfileSection) => canViewSection(state, me, profile.id, section)
   const orgs = state.memberships.filter((m) => m.studentId === profile.id && m.status === 'active')
   const attended = state.eventParticipations.filter((p) => p.studentId === profile.id && p.state === 'attended').map((p) => state.events.find((e) => e.id === p.eventId)).filter((e) => e !== undefined)
@@ -201,25 +202,35 @@ export function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="h-32 rounded-t-[var(--radius-card)]" style={{ backgroundImage: gradientFor(themeSeed, 100) }} aria-hidden />
-      <Card className="-mt-1 rounded-t-none" >
-        <div className="flex flex-wrap items-start gap-4">
-          <span className="-mt-10 rounded-full border-4 border-surface" style={{ outline: `3px solid ${accent}` }}><Avatar name={profile.displayName} size={72} /></span>
-          <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-bold">{profile.displayName} <Badge tone="warning">Demo profile</Badge></h1>
-            <p className="text-sm text-muted-foreground">{[profile.major, profile.college, profile.classYear && `Class of ${profile.classYear}`].filter(Boolean).join(' · ')}</p>
-            {profile.bio && <p className="mt-2 text-sm">{profile.bio}</p>}
-          </div>
+      <div className="relative h-36 overflow-hidden rounded-t-[var(--radius-card)] sm:h-44" style={{ backgroundImage: gradientFor(themeSeed, 100) }} aria-hidden>
+        {profile.coverUrl && <img src={profile.coverUrl} alt="" className="absolute inset-0 size-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none' }} />}
+        {profile.coverUrl && <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />}
+      </div>
+      <Card className="-mt-1 rounded-t-none !p-5">
+        <div className="flex items-end justify-between gap-3">
+          <span className="relative z-10 -mt-16 shrink-0 rounded-full sm:-mt-20" style={{ boxShadow: `0 0 0 4px var(--color-surface), 0 0 0 7px ${accent}` }}><Avatar name={profile.displayName} size={104} /></span>
           {!own && (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap justify-end gap-2">
               <Button onClick={() => { const { state: next, id } = ensureDirect(state, me, profile.id); update(() => next); navigate(`/messages/${id}`) }}>Message</Button>
               <Button variant={following ? 'secondary' : 'primary'} aria-pressed={following} onClick={() => update((s) => toggleFollow(s, me, 'student', profile.id))}>
                 {following ? <UserCheck aria-hidden className="size-4" /> : <UserPlus aria-hidden className="size-4" />} {following ? 'Following' : 'Follow'}
               </Button>
-              <Button variant="ghost" onClick={() => { if (window.confirm(`Block ${profile.displayName}? You won’t see their content. You can undo this in Settings.`)) update((s) => toggleBlock(s, me, profile.id)) }}><Ban aria-hidden className="size-4" /> Block</Button>
+              <ActionMenu>
+                <ActionMenuItem tone="danger" onClick={() => { if (window.confirm(`Block ${profile.displayName}? You won’t see their content. You can undo this in Settings.`)) update((s) => toggleBlock(s, me, profile.id)) }}>
+                  <Ban aria-hidden className="size-4" /> Block {profile.displayName}
+                </ActionMenuItem>
+              </ActionMenu>
             </div>
           )}
           {own && <Button onClick={() => setCustomizing((c) => !c)} aria-expanded={customizing}>Customize profile</Button>}
+        </div>
+        <div className="mt-3 min-w-0">
+          <h1 className="text-2xl font-bold">{profile.displayName}</h1>
+          <p className="text-sm text-muted-foreground">{[profile.major, profile.college, profile.classYear && `Class of ${profile.classYear}`].filter(Boolean).join(' · ')}</p>
+          {profile.bio && <p className="mt-2 max-w-prose text-sm">{profile.bio}</p>}
+          {!own && sharedInterests.length > 0 && (
+            <p className="mt-2 flex flex-wrap items-center gap-1.5 text-sm"><span className="font-medium">You both like</span>{sharedInterests.map((t) => <span key={t} className="rounded-full bg-brand-soft px-2 py-0.5 text-xs font-semibold text-brand">#{t}</span>)}</p>
+          )}
         </div>
 
         {own && customizing && (
@@ -244,12 +255,18 @@ export function ProfilePage() {
           <dl className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
             {metricList.map((m) => (
               <button key={m.label} type="button" onClick={() => setTab(m.goTo)} className="rounded-xl border border-border p-3 text-left hover:bg-surface-muted">
-                <dd className="text-2xl font-bold">{m.value}</dd>
+                <dd className={`text-2xl font-bold ${m.value === 0 ? 'text-muted-foreground' : ''}`}>{m.value}</dd>
                 <dt className="text-xs text-muted-foreground">{m.label}</dt>
               </button>
             ))}
           </dl>
         ) : <p className="mt-4 text-sm text-muted-foreground">Activity metrics are private.</p>}
+        {metricList.every((m) => m.value === 0) && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            {own ? 'You’re just getting started.' : `${profile.displayName} is just getting started.`} These numbers grow with real activity, not likes.{' '}
+            {own && <Link to="/community" className="font-semibold text-brand hover:underline">Find a group to join</Link>}
+          </p>
+        )}
         {!own && <p className="mt-3 text-xs text-muted-foreground">Following is private and one-way. It doesn’t give access to private content.</p>}
       </Card>
 
@@ -265,12 +282,12 @@ export function ProfilePage() {
       {!can(tab) ? locked : tab === 'overview' ? (
         <div className="space-y-4">
           <Card><h2 className="mb-2 font-semibold">Organizations</h2>
-            {orgs.length === 0 ? <p className="text-sm text-muted-foreground">No organization memberships yet.</p> : (
+            {orgs.length === 0 ? <p className="text-sm text-muted-foreground">{own ? 'You haven’t joined an organization yet.' : `${profile.displayName} hasn’t joined an organization yet.`} <Link to="/organizations" className="font-semibold text-brand hover:underline">Browse organizations</Link></p> : (
               <ul className="space-y-1 text-sm">{orgs.map((m) => { const o = state.organizations.find((x) => x.id === m.organizationId); return o && <li key={m.id}><Link className="font-medium hover:underline" to={`/organizations/${o.id}`}>{o.name}</Link> <span className="text-muted-foreground">· {m.role.replace('-', ' ')}</span></li> })}</ul>
             )}
           </Card>
           <Card><h2 className="mb-2 font-semibold">Events attended</h2>
-            {attended.length === 0 ? <p className="text-sm text-muted-foreground">No confirmed attendance yet.</p> : (
+            {attended.length === 0 ? <p className="text-sm text-muted-foreground">No confirmed attendance yet. <Link to="/events" className="font-semibold text-brand hover:underline">See upcoming events</Link></p> : (
               <ul className="space-y-1 text-sm">{attended.map((e) => <li key={e.id}><Link className="font-medium hover:underline" to={`/events/${e.id}`}>{e.title}</Link> <span className="text-muted-foreground">· {formatDay(e.startAt)}</span></li>)}</ul>
             )}
           </Card>

@@ -1,5 +1,8 @@
 import { createExtraSeed } from './extra'
 import { withMoreContent } from './more'
+import { withMoreProjects } from './projectsMore'
+import { AUDIO, EVENT_PHOTOS, MEDIA } from './media'
+import { PROJECT_EXTRAS } from './projectExtras'
 import type {
   CampusEvent, Community, CommunityMembership, DemoAccount, DiscussionThread, OrganizationMembership,
   OrganizationPermission, PersistedAppState, Post, Project, StudentProfile, ThreadReply,
@@ -7,7 +10,7 @@ import type {
 
 // ALL SEED CONTENT IS FICTIONAL. Not real Temple organizations, people or events.
 
-export const SCHEMA_VERSION = 5
+export const SCHEMA_VERSION = 12
 
 /** Curated tags suggested across feed, projects, communities and events. */
 export const CURATED_TAGS = [
@@ -45,8 +48,8 @@ const post = (p: Partial<Post> & Pick<Post, 'id' | 'authorId' | 'type' | 'create
   tags: [], visibility: 'public', updatedAt: p.createdAt, ...p,
 })
 
-const event = (e: Omit<CampusEvent, 'status' | 'isDemoContent'>): CampusEvent => ({
-  status: 'published', isDemoContent: true, ...e,
+const event = (e: Omit<CampusEvent, 'status'>): CampusEvent => ({
+  status: 'published', ...e,
 })
 
 const community = (c: Omit<Community, 'visibility' | 'isOfficialOrganization'>): Community => ({
@@ -64,7 +67,8 @@ const project = (p: Partial<Project> & Pick<Project, 'id' | 'ownerId' | 'title' 
 })
 
 export function createSeedState(): PersistedAppState {
-  return withMoreContent(buildBaseSeed())
+  const seed = withMoreProjects(withMoreContent(buildBaseSeed()))
+  return { ...seed, projects: seed.projects.map((p) => ({ ...p, ...PROJECT_EXTRAS[p.id] })) }
 }
 
 function buildBaseSeed(): PersistedAppState {
@@ -79,17 +83,17 @@ function buildBaseSeed(): PersistedAppState {
     activeAccountId: 'acct-jordan',
     accounts,
     students: [
-      student('stu-jordan', 'Jordan', { major: 'Communication Studies', college: 'Klein College (demo)', classYear: '2028', bio: 'Demo persona: general student, not in any organization yet.', interests: ['music', 'photography', 'career'], skills: ['video editing', 'social media'] }),
-      student('stu-taylor', 'Taylor', { major: 'Computer Science', college: 'College of Science (demo)', classYear: '2028', bio: 'Demo persona: organization member. Hackathon regular.', interests: ['tech', 'gaming', 'study'], skills: ['React', 'TypeScript'] }),
-      student('stu-morgan', 'Morgan', { major: 'Business', college: 'Business School (demo)', classYear: '2026', bio: 'Demo persona: organization officer.', interests: ['entrepreneurship', 'career', 'film'], skills: ['budgeting', 'event planning'] }),
-      student('stu-alex', 'Alex', { major: 'Film & Media Arts', college: 'Arts College (demo)', classYear: '2027', bio: 'Demo persona: organization administrator (president).', interests: ['film', 'art', 'student-life'], skills: ['directing', 'cinematography'] }),
+      student('stu-jordan', 'Jordan', { coverUrl: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=1600&h=420&q=75', major: 'Communication Studies', college: 'Klein College', classYear: '2028', bio: 'Communication major exploring clubs and campus life.', interests: ['music', 'photography', 'career'], skills: ['video editing', 'social media'] }),
+      student('stu-taylor', 'Taylor', { major: 'Computer Science', college: 'College of Science', classYear: '2028', bio: 'Hackathon regular and Film Collective member.', interests: ['tech', 'gaming', 'study'], skills: ['React', 'TypeScript'] }),
+      student('stu-morgan', 'Morgan', { major: 'Business', college: 'Business School', classYear: '2026', bio: 'Business major who helps run student organizations.', interests: ['entrepreneurship', 'career', 'film'], skills: ['budgeting', 'event planning'] }),
+      student('stu-alex', 'Alex', { major: 'Film & Media Arts', college: 'Arts College', classYear: '2027', bio: 'Film major and president of the Film Collective.', interests: ['film', 'art', 'student-life'], skills: ['directing', 'cinematography'] }),
       student('stu-riley', 'Riley', { major: 'Visual Arts', classYear: '2027', bio: 'Street photographer exploring Philly.', interests: ['photography', 'art', 'philly'], skills: ['photography', 'Lightroom'] }),
       student('stu-sam', 'Sam', { major: 'Music Technology', classYear: '2029', bio: 'Producer and podcast host.', interests: ['music', 'tech'], skills: ['audio mixing', 'Ableton'] }),
     ],
     organizations: [
-      { id: 'org-film', name: 'Demo Film Collective', description: 'A fictional student film organization used for prototype demos.', tags: ['film', 'art'], verificationStatus: 'demo', createdAt: NOW, updatedAt: NOW },
-      { id: 'org-founders', name: 'Demo Founders Circle', description: 'A fictional entrepreneurship organization used for prototype demos.', tags: ['entrepreneurship', 'career'], verificationStatus: 'demo', createdAt: NOW, updatedAt: NOW },
-      { id: 'org-radio', name: 'Demo Campus Radio', description: 'A fictional student radio organization used for prototype demos.', tags: ['music'], verificationStatus: 'demo', createdAt: NOW, updatedAt: NOW },
+      { id: 'org-film', name: 'Film Collective', description: 'Student filmmakers making short films and hosting screening nights.', tags: ['film', 'art'], verificationStatus: 'demo', createdAt: NOW, updatedAt: NOW },
+      { id: 'org-founders', name: 'Founders Circle', description: 'Students building startups with pitch practice, workshops and peer feedback.', tags: ['entrepreneurship', 'career'], verificationStatus: 'demo', createdAt: NOW, updatedAt: NOW },
+      { id: 'org-radio', name: 'Campus Radio', description: 'Student-run radio with live shows, DJ sets and music events.', tags: ['music'], verificationStatus: 'demo', createdAt: NOW, updatedAt: NOW },
     ],
     memberships: [
       membership('mem-1', 'org-film', 'stu-alex', 'president', OFFICER_PERMS),
@@ -101,18 +105,18 @@ function buildBaseSeed(): PersistedAppState {
       membership('mem-6', 'org-radio', 'stu-sam', 'president', OFFICER_PERMS),
     ],
     posts: [
-      post({ id: 'post-1', authorId: 'stu-riley', type: 'photo', title: 'Morning on Broad Street', body: 'Shot this on my walk to class. Film grain on purpose.', mediaLabel: 'Photo: Broad Street at sunrise', tags: ['photography', 'philly'], createdAt: at('11-05', '09:10') }),
-      post({ id: 'post-2', authorId: 'stu-sam', organizationId: 'org-radio', type: 'event', title: 'WHIP Radio Live (demo)', body: 'Three hours of student DJs, live. Come hang out.', relatedId: 'ev-whip', tags: ['music', 'student-life'], createdAt: at('11-04', '17:30') }),
+      post({ id: 'post-1', authorId: 'stu-riley', type: 'photo', title: 'Morning on Broad Street', body: 'Shot this on my walk to class. Film grain on purpose.', mediaLabel: 'Photo: Broad Street at sunrise', mediaUrls: MEDIA.broadStreet, tags: ['photography', 'philly'], createdAt: at('11-05', '09:10') }),
+      post({ id: 'post-2', authorId: 'stu-sam', organizationId: 'org-radio', type: 'event', title: 'WHIP Radio Live', body: 'Three hours of student DJs, live. Come hang out.', relatedId: 'ev-whip', tags: ['music', 'student-life'], createdAt: at('11-04', '17:30') }),
       post({ id: 'post-3', authorId: 'stu-taylor', type: 'discussion', title: 'What do you use to stay focused during finals?', body: 'Library, coffee shop, or locked in at home? Trying to build a routine.', tags: ['study', 'student-life'], createdAt: at('11-04', '14:00') }),
       post({ id: 'post-4', authorId: 'stu-alex', organizationId: 'org-film', type: 'project', title: 'Looking for a sound designer', body: 'Our short film "Night Shift" needs someone for sound design. Details in the project.', relatedId: 'proj-4', tags: ['film', 'art'], createdAt: at('11-03', '19:00') }),
-      post({ id: 'post-5', authorId: 'stu-sam', type: 'audio', title: 'Beat sketch #12', body: 'Rough loop, feedback welcome.', mediaLabel: 'Audio: 1:48 beat sketch', tags: ['music'], createdAt: at('11-03', '11:20') }),
+      post({ id: 'post-5', authorId: 'stu-sam', type: 'audio', title: 'Beat sketch #12', body: 'Rough loop, feedback welcome.', mediaLabel: 'Audio: 1:48 beat sketch', mediaUrls: MEDIA.beatCover, audioUrl: AUDIO.beat, tags: ['music'], createdAt: at('11-03', '11:20') }),
       post({ id: 'post-6', authorId: 'stu-morgan', type: 'text', body: 'Reminder: pitch practice night is next week. No experience needed, just bring an idea.', tags: ['entrepreneurship', 'career'], createdAt: at('11-03', '09:00') }),
-      post({ id: 'post-7', authorId: 'stu-alex', type: 'video', title: 'Behind the scenes: lighting test', body: 'Testing a one-light setup for the short.', mediaLabel: 'Video: 0:45 lighting test', tags: ['film'], createdAt: at('11-02', '16:45') }),
+      post({ id: 'post-7', authorId: 'stu-alex', type: 'video', title: 'Behind the scenes: lighting test', body: 'Testing a one-light setup for the short.', mediaLabel: 'Video: 0:45 lighting test', mediaUrls: MEDIA.lighting, tags: ['film'], createdAt: at('11-02', '16:45') }),
       post({ id: 'post-8', authorId: 'stu-riley', type: 'quote', body: '"The best camera is the one that\'s with you."', linkUrl: 'https://example.com/quote-source', title: 'A line I keep coming back to', tags: ['photography', 'art'], createdAt: at('11-02', '12:10') }),
       post({ id: 'post-9', authorId: 'stu-taylor', type: 'link', title: 'Free intro to TypeScript course', body: 'Worked through this over the weekend. Good for beginners.', linkUrl: 'https://example.com/typescript-intro', tags: ['tech', 'study'], createdAt: at('11-01', '20:00') }),
-      post({ id: 'post-10', authorId: 'stu-morgan', organizationId: 'org-founders', type: 'organization', title: 'Demo Founders Circle is open to new members', body: 'This is a fictional demo organization. Ask a question or request to join from its page.', relatedId: 'org-founders', tags: ['entrepreneurship'], createdAt: at('11-01', '10:00') }),
+      post({ id: 'post-10', authorId: 'stu-morgan', organizationId: 'org-founders', type: 'organization', title: 'Founders Circle is open to new members', body: 'We are welcoming new members this semester. Ask a question or request to join from our page.', relatedId: 'org-founders', tags: ['entrepreneurship'], createdAt: at('11-01', '10:00') }),
       post({ id: 'post-11', authorId: 'stu-sam', type: 'project', title: 'Student Podcast Pilot needs a co-host', body: 'Weekly show about campus creators. Looking for a second voice.', relatedId: 'proj-2', tags: ['music', 'student-life'], createdAt: at('10-31', '15:00') }),
-      post({ id: 'post-12', authorId: 'stu-riley', type: 'album', title: 'Fall colors, Main Campus', body: 'Six frames from last weekend.', mediaLabel: 'Album: 6 photos', tags: ['photography', 'student-life'], createdAt: at('10-30', '13:30') }),
+      post({ id: 'post-12', authorId: 'stu-riley', type: 'album', title: 'Fall colors, Main Campus', body: 'Six frames from last weekend.', mediaLabel: 'Album: 6 photos', mediaUrls: MEDIA.fallCampus, tags: ['photography', 'student-life'], createdAt: at('10-30', '13:30') }),
       post({ id: 'post-13', authorId: 'stu-jordan', type: 'text', title: 'Draft: thoughts on my first semester', body: 'Private draft, only visible to me.', visibility: 'private', tags: ['student-life'], createdAt: at('10-29', '21:00') }),
       post({ id: 'post-14', authorId: 'stu-jordan', type: 'text', body: 'Anyone want to start a casual photo walk group? Philly has so many spots.', tags: ['photography', 'philly'], createdAt: at('10-28', '18:00') }),
     ],
@@ -129,16 +133,16 @@ function buildBaseSeed(): PersistedAppState {
     ],
     hiddenPosts: [],
     events: [
-      event({ id: 'ev-today', title: 'Study Break & Free Pizza', description: 'Take a break between classes. Fictional sample event.', hostOrganizationId: 'org-founders', category: 'Food & Freebies', startAt: at('11-05', '12:00'), endAt: at('11-05', '13:30'), locationName: 'Howard Gittis Student Center', priceLabel: 'Free', campus: 'Main Campus' }),
-      event({ id: 'ev-whip', title: 'WHIP Radio Live', description: 'Student DJs broadcast live. Fictional sample event, not a verified Temple event.', hostOrganizationId: 'org-radio', category: 'Music & Entertainment', startAt: at('11-06', '18:00'), endAt: at('11-06', '21:00'), locationName: 'Howard Gittis Student Center', priceLabel: 'Free', campus: 'Main Campus' }),
-      event({ id: 'ev-art', title: 'Student Art Showcase', description: 'An afternoon of student work across media. Fictional sample event.', category: 'Arts & Culture', startAt: at('11-07', '12:00'), endAt: at('11-07', '16:00'), locationName: 'Charles Library', priceLabel: 'Free', campus: 'Main Campus' }),
-      event({ id: 'ev-producers', title: 'Music Producers Meetup', description: 'Share beats, swap tips, find collaborators. Fictional sample event.', hostOrganizationId: 'org-radio', category: 'Music & Entertainment', startAt: at('11-09', '17:30'), endAt: at('11-09', '19:00'), locationName: 'TECH Center', priceLabel: 'Free', campus: 'Main Campus' }),
-      event({ id: 'ev-careers', title: 'Creative Careers & Networking', description: 'Meet students and alumni in creative fields. Fictional sample event.', category: 'Professional', startAt: at('11-11', '15:00'), endAt: at('11-11', '17:00'), locationName: 'Annenberg Hall', priceLabel: 'Free', campus: 'Main Campus' }),
-      event({ id: 'ev-hack', title: 'Intro to Hack Night', description: 'Build something small with other students. Beginners welcome. Fictional sample event.', category: 'Academic', startAt: at('11-12', '18:00'), endAt: at('11-12', '21:00'), locationName: 'TECH Center', priceLabel: 'Free', campus: 'Main Campus' }),
-      event({ id: 'ev-mic', title: 'Open Mic Night', description: 'Music, poetry and comedy. Fictional sample event.', category: 'Social', startAt: at('11-13', '19:00'), endAt: at('11-13', '21:30'), locationName: 'Tuttleman Learning Center', priceLabel: '$5 (demo price)', campus: 'Main Campus' }),
-      event({ id: 'ev-cleanup', title: 'Neighborhood Cleanup Day', description: 'Volunteer with other students. Fictional sample event.', category: 'Community Service', startAt: at('11-14', '10:00'), endAt: at('11-14', '13:00'), locationName: 'Meet at Howard Gittis Student Center', priceLabel: 'Free', campus: 'Main Campus' }),
-      event({ id: 'ev-5k', title: 'Fall Fun Run', description: 'A casual 5K around campus. Fictional sample event.', category: 'Sports & Recreation', startAt: at('11-15', '09:00'), endAt: at('11-15', '11:00'), locationName: 'Campus loop', priceLabel: 'Free', campus: 'Main Campus' }),
-      event({ id: 'ev-past', title: 'Fall Welcome Mixer', description: 'Past fictional sample event.', category: 'Social', startAt: at('10-20', '17:00'), endAt: at('10-20', '19:00'), locationName: 'Howard Gittis Student Center', priceLabel: 'Free', campus: 'Main Campus' }),
+      event({ id: 'ev-today', coverUrl: EVENT_PHOTOS['ev-today'], title: 'Study Break & Free Pizza', description: 'Take a break between classes.', hostOrganizationId: 'org-founders', category: 'Food & Freebies', startAt: at('11-05', '12:00'), endAt: at('11-05', '13:30'), locationName: 'Howard Gittis Student Center', priceLabel: 'Free', campus: 'Main Campus' }),
+      event({ id: 'ev-whip', title: 'WHIP Radio Live', description: 'Student DJs broadcast live.', hostOrganizationId: 'org-radio', category: 'Music & Entertainment', startAt: at('11-06', '18:00'), endAt: at('11-06', '21:00'), locationName: 'Howard Gittis Student Center', priceLabel: 'Free', campus: 'Main Campus' }),
+      event({ id: 'ev-art', coverUrl: EVENT_PHOTOS['ev-art'], title: 'Student Art Showcase', description: 'An afternoon of student work across media.', category: 'Arts & Culture', startAt: at('11-07', '12:00'), endAt: at('11-07', '16:00'), locationName: 'Charles Library', priceLabel: 'Free', campus: 'Main Campus' }),
+      event({ id: 'ev-producers', title: 'Music Producers Meetup', description: 'Share beats, swap tips, find collaborators.', hostOrganizationId: 'org-radio', category: 'Music & Entertainment', startAt: at('11-09', '17:30'), endAt: at('11-09', '19:00'), locationName: 'TECH Center', priceLabel: 'Free', campus: 'Main Campus' }),
+      event({ id: 'ev-careers', title: 'Creative Careers & Networking', description: 'Meet students and alumni in creative fields.', category: 'Professional', startAt: at('11-11', '15:00'), endAt: at('11-11', '17:00'), locationName: 'Annenberg Hall', priceLabel: 'Free', campus: 'Main Campus' }),
+      event({ id: 'ev-hack', title: 'Intro to Hack Night', description: 'Build something small with other students. Beginners welcome.', category: 'Academic', startAt: at('11-12', '18:00'), endAt: at('11-12', '21:00'), locationName: 'TECH Center', priceLabel: 'Free', campus: 'Main Campus' }),
+      event({ id: 'ev-mic', coverUrl: EVENT_PHOTOS['ev-mic'], title: 'Open Mic Night', description: 'Music, poetry and comedy.', category: 'Social', startAt: at('11-13', '19:00'), endAt: at('11-13', '21:30'), locationName: 'Tuttleman Learning Center', priceLabel: '$5', campus: 'Main Campus' }),
+      event({ id: 'ev-cleanup', coverUrl: EVENT_PHOTOS['ev-cleanup'], title: 'Neighborhood Cleanup Day', description: 'Volunteer with other students.', category: 'Community Service', startAt: at('11-14', '10:00'), endAt: at('11-14', '13:00'), locationName: 'Meet at Howard Gittis Student Center', priceLabel: 'Free', campus: 'Main Campus' }),
+      event({ id: 'ev-5k', coverUrl: EVENT_PHOTOS['ev-5k'], title: 'Fall Fun Run', description: 'A casual 5K around campus.', category: 'Sports & Recreation', startAt: at('11-15', '09:00'), endAt: at('11-15', '11:00'), locationName: 'Campus loop', priceLabel: 'Free', campus: 'Main Campus' }),
+      event({ id: 'ev-past', coverUrl: EVENT_PHOTOS['ev-past'], title: 'Fall Welcome Mixer', description: 'A casual mixer to kick off the fall semester.', category: 'Social', startAt: at('10-20', '17:00'), endAt: at('10-20', '19:00'), locationName: 'Howard Gittis Student Center', priceLabel: 'Free', campus: 'Main Campus' }),
     ],
     eventParticipations: [
       { id: 'ep-1', eventId: 'ev-past', studentId: 'stu-taylor', state: 'attended', updatedAt: NOW },
@@ -178,7 +182,7 @@ function buildBaseSeed(): PersistedAppState {
       reply({ id: 'rep-5', threadId: 'thr-4', authorId: 'stu-morgan', body: 'Wish I could join, but good luck!', createdAt: at('11-02', '10:00') }),
     ],
     projects: [
-      project({ id: 'proj-1', ownerId: 'stu-jordan', title: 'Demo Short Documentary', description: 'A private starter project to try the workspace.', category: 'Media & Production' }),
+      project({ id: 'proj-1', ownerId: 'stu-jordan', title: 'Short Documentary', description: 'A short documentary about student life. Currently in early planning.', category: 'Media & Production' }),
       project({ id: 'proj-2', ownerId: 'stu-sam', title: 'Student Podcast Pilot', description: 'A weekly show about campus creators. We need a co-host and an editor.', category: 'Music', skillsNeeded: ['hosting', 'audio editing'], status: 'recruiting', isPublished: true, deadline: '2026-12-15' }),
       project({ id: 'proj-3', ownerId: 'stu-taylor', kind: 'need-help', title: 'Portfolio site feedback', description: 'Looking for design feedback on my portfolio site before applying to internships.', category: 'Design & Creative', skillsNeeded: ['UX review', 'visual design'], status: 'recruiting', isPublished: true, deadline: '2026-11-30' }),
       project({ id: 'proj-4', ownerId: 'stu-alex', title: 'Short Film: Night Shift', description: 'A 10-minute short shot over two weekends. Seeking a sound designer.', category: 'Media & Production', skillsNeeded: ['sound design'], status: 'recruiting', isPublished: true, deadline: '2026-12-10' }),
@@ -208,7 +212,7 @@ function buildBaseSeed(): PersistedAppState {
     portfolioItems: [
       { id: 'port-1', ownerId: 'stu-riley', title: 'Broad Street series', description: 'Documentary photography, film scans.', category: 'Photography', visibility: 'public' },
       { id: 'port-2', ownerId: 'stu-sam', title: 'Beat tape Vol. 1', description: 'Eight original instrumentals.', category: 'Music/Audio', visibility: 'public' },
-      { id: 'port-3', ownerId: 'stu-taylor', title: 'Campus event finder (demo app)', description: 'React + TypeScript side project.', category: 'Apps & Websites', visibility: 'temple-only' },
+      { id: 'port-3', ownerId: 'stu-taylor', title: 'Campus event finder', description: 'React + TypeScript side project.', category: 'Apps & Websites', visibility: 'temple-only' },
     ],
     savedItems: [],
     ...createExtraSeed(),

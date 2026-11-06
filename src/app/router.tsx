@@ -1,6 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { AppShell } from '../components/layout/AppShell'
-import { AssistantPage } from '../features/assistant/AssistantPage'
 import { CalendarPage } from '../features/calendar/CalendarPage'
 import { CommunityDetailPage } from '../features/community/CommunityDetailPage'
 import { CommunityPage } from '../features/community/CommunityPage'
@@ -48,7 +47,7 @@ export const router = createBrowserRouter([
       { path: '/messages', element: <MessagesPage /> },
       { path: '/messages/:conversationId', element: <MessagesPage /> },
       { path: '/resources', element: <ResourcesPage /> },
-      { path: '/assistant', element: <AssistantPage /> },
+      { path: '/assistant', element: <Navigate to="/feed" replace /> },
       { path: '/saved', element: <SavedPage /> },
       { path: '/calendar', element: <CalendarPage /> },
       { path: '/announcements', element: <AnnouncementsPage /> },

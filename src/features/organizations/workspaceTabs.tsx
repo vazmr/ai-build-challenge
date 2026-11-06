@@ -206,7 +206,7 @@ export function CollaborationTab({ orgId }: { orgId: string }) {
             {c.status === 'active' && (
               <div className="mt-3 space-y-3">
                 <div>
-                  <p className="text-sm font-medium">Shared files (names only in this prototype)</p>
+                  <p className="text-sm font-medium">Shared files</p>
                   {c.files.length === 0 ? <p className="text-sm text-muted-foreground">Nothing shared yet.</p> : <ul className="text-sm">{c.files.map((f) => <li key={f.id}>{f.name} <span className="text-muted-foreground">· {f.permission} · shared by {orgName(f.sharedByOrgId)}</span></li>)}</ul>}
                   <form className="mt-2 flex gap-2" onSubmit={(e) => { e.preventDefault(); update((s) => shareFile(s, me, orgId, c.id, fileNames[c.id] ?? '', 'view')); setFileNames({ ...fileNames, [c.id]: '' }) }}>
                     <Input aria-label="File name to share" placeholder="File name" value={fileNames[c.id] ?? ''} onChange={(e) => setFileNames({ ...fileNames, [c.id]: e.target.value })} />
@@ -260,7 +260,7 @@ export function EventsTab({ orgId }: { orgId: string }) {
   return (
     <div className="space-y-4">
       <Card>
-        <h2 className="mb-3 font-semibold">Create a sample event</h2>
+        <h2 className="mb-3 font-semibold">Create an event</h2>
         <form className="grid gap-3 md:grid-cols-2" onSubmit={(e) => { e.preventDefault(); update((s) => createOrgEvent(s, activeStudent.id, orgId, f)); setF(blank) }}>
           <div className="md:col-span-2"><Field label="Title"><Input required value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} /></Field></div>
           <div className="md:col-span-2"><Field label="Description"><Textarea value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></Field></div>
@@ -270,8 +270,8 @@ export function EventsTab({ orgId }: { orgId: string }) {
           <Field label="End"><Input type="time" required value={f.endTime} onChange={(e) => setF({ ...f, endTime: e.target.value })} /></Field>
           <Field label="Location"><Input value={f.locationName} onChange={(e) => setF({ ...f, locationName: e.target.value })} /></Field>
           <Field label="Price label"><Input value={f.priceLabel} onChange={(e) => setF({ ...f, priceLabel: e.target.value })} /></Field>
-          <div className="md:col-span-2"><Button type="submit" variant="primary" disabled={!f.title.trim() || !f.date}>Publish sample event</Button></div>
-          <p className="text-xs text-muted-foreground md:col-span-2">Events created here are demo content in this browser only. They are not real registrations or official Temple events.</p>
+          <div className="md:col-span-2"><Button type="submit" variant="primary" disabled={!f.title.trim() || !f.date}>Publish event</Button></div>
+          <p className="text-xs text-muted-foreground md:col-span-2">Events you publish appear in Events and on your organization page.</p>
         </form>
       </Card>
       <h2 className="font-semibold">Your organization’s events</h2>

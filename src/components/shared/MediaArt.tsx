@@ -20,7 +20,7 @@ export function MediaArt({ kind, seed, label }: { kind: Kind; seed: string; labe
   )
 
   return (
-    <div role="img" aria-label={`${label} (generated placeholder)`} className="relative mt-3 overflow-hidden rounded-xl">
+    <div role="img" aria-label={label} className="relative mt-3 overflow-hidden rounded-xl">
       <svg viewBox={kind === 'album' ? '0 0 160 100' : '0 0 160 100'} preserveAspectRatio="xMidYMid slice" className="block h-48 w-full sm:h-56">
         <defs>
           <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={a} /><stop offset="1" stopColor={b} /></linearGradient>

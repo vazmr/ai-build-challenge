@@ -13,24 +13,24 @@ Mobile bottom navigation, in this order:
 Feed is the default landing screen and receives the central visual emphasis.
 
 ### Global header
+- Messages
 - My Campus Calendar shortcut (opens the student's calendar, not event discovery)
 - Announcements
 - Notifications
-- More menu
+- More menu (mobile only; on tablet/desktop its contents live in the sidebar)
 
-### More menu
-- My Profile
-- Resources
-- Saved Items
+### Secondary destinations (sidebar on tablet/desktop, More menu on mobile)
+- Explore: Organizations, Resources
+- You: My Profile, Saved Items
 - Settings & Privacy
 
-Organization profiles/workspaces are reached through search, feed content, Community links and profile discovery. The AI Campus Assistant is available through Resources/contextual entry points.
+The More menu on mobile also carries My Campus Calendar and Announcements, which sit in the header on larger screens. Organization profiles/workspaces are also reachable through search, feed content, Community links and profile discovery.
 
 ## 2. Responsive navigation
 
 - Mobile: bottom navigation and compact header.
-- Tablet: adaptive navigation; use available width without crowding.
-- Desktop: persistent sidebar or expanded navigation with a content workspace.
+- Tablet (md): persistent icon rail with the same destinations and groups as the desktop sidebar.
+- Desktop (lg+): persistent sidebar with labels, the five primary destinations first, then Explore and You groups, Settings pinned at the bottom.
 - Keep destinations and route meaning consistent across sizes.
 
 ## 3. Primary student journeys
@@ -112,7 +112,6 @@ Use React Router. Exact route names may be refined during implementation, but pr
 - `/organizations/:organizationId`
 - `/organizations/:organizationId/workspace`
 - `/resources`
-- `/assistant`
 - `/saved`
 - `/calendar`
 - `/announcements`

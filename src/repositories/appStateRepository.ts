@@ -10,4 +10,6 @@ export interface AppStateRepository {
   save(state: PersistedAppState): void
   /** Discard saved state and return freshly seeded data. */
   reset(): PersistedAppState
+  /** Opcional: baixa o estado do backend remoto (null = indisponível, usar o local). */
+  hydrate?(): Promise<PersistedAppState | null>
 }

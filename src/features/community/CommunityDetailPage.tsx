@@ -56,7 +56,7 @@ export function CommunityDetailPage() {
         {(founder || state.foundingWorkspaces.some((w) => w.communityId === community.id && canAccessFounding(w, me)) || state.foundingWorkspaces.some((w) => w.communityId === community.id && w.founders.some((f) => f.studentId === me && f.status === 'invited'))) && (
           <Link to={`/community/${community.id}/founding`} className="inline-flex min-h-10 items-center rounded-lg border border-border bg-surface px-3.5 text-sm font-semibold hover:bg-surface-muted">Founding workspace</Link>
         )}
-        <Button variant="ghost" onClick={() => setReported(true)} disabled={reported}><Flag aria-hidden className="size-4" /> {reported ? 'Reported (demo)' : 'Report group'}</Button>
+        <Button variant="ghost" onClick={() => setReported(true)} disabled={reported}><Flag aria-hidden className="size-4" /> {reported ? 'Reported' : 'Report group'}</Button>
       </div>
       <p className="-mt-3 mb-5 text-xs text-muted-foreground">Following lets you see public updates. Joining lets you post and reply. Neither makes you a member of an official organization.</p>
 

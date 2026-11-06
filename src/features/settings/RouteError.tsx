@@ -6,7 +6,7 @@ export function RouteError() {
   const detail = err instanceof Error ? err.message : undefined
   return (
     <div className="mx-auto max-w-lg p-6">
-      <EmptyState title="Something went wrong" description={detail ?? 'An unexpected error occurred. Your demo data is safe.'}
+      <EmptyState title="Something went wrong" description={detail ?? 'An unexpected error occurred. Your data is safe.'}
         action={<Link to="/feed" className="text-sm font-semibold text-brand hover:underline">Back to Feed</Link>} />
     </div>
   )

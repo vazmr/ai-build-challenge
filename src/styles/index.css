@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@fontsource-variable/bricolage-grotesque";
 
 /* Design tokens (see DESIGN_SYSTEM.md). Use these semantic names, not raw colors. */
 @theme {
@@ -17,6 +18,7 @@
   --color-danger: #b42318;
   --color-info: #1f5fa8;
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
   --radius-card: 1rem;
 }
 
@@ -27,11 +29,105 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Display face for page and card titles; body keeps the system stack for legibility. */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+h1 { letter-spacing: -0.025em; }
+p, li { text-wrap: pretty; }
+
+/* Browser surfaces themed from the palette. */
+::selection { background: var(--color-brand); color: var(--color-brand-foreground); }
+input::placeholder, textarea::placeholder { color: var(--color-muted-foreground); opacity: 1; }
+:root { scrollbar-color: #b9b5b0 transparent; }
+.tabular, table { font-variant-numeric: tabular-nums; }
+
 :focus-visible {
   outline: 2px solid var(--color-brand);
   outline-offset: 2px;
 }
 
+/* Product tour: card settles in from a few px below; the spotlight itself glides between targets. */
+@keyframes tour-in {
+  from { opacity: 0; translate: 0 8px; }
+  to { opacity: 1; translate: 0 0; }
+}
+.tour-card { animation: tour-in 320ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* ---------- Motion system ----------
+   One easing family, three durations. Every animation starts from the component's own origin:
+   dropdowns grow from the control that opened them, the assistant grows from its button,
+   the composer unfolds from the "Share something" field, pages rise into place. */
+:root {
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --dur-fast: 140ms;
+  --dur-base: 240ms;
+  --dur-slow: 380ms;
+}
+
+@keyframes page-in { from { opacity: 0; translate: 0 12px; } to { opacity: 1; translate: 0 0; } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes rise-in { from { opacity: 0; translate: 0 14px; scale: 0.985; } to { opacity: 1; translate: 0 0; scale: 1; } }
+@keyframes pop-in { from { opacity: 0; scale: 0.94; translate: 0 -6px; } to { opacity: 1; scale: 1; translate: 0 0; } }
+@keyframes pop-out { from { opacity: 1; scale: 1; translate: 0 0; } to { opacity: 0; scale: 0.96; translate: 0 -4px; } }
+@keyframes panel-in { from { opacity: 0; scale: 0.88; translate: 0 20px; } to { opacity: 1; scale: 1; translate: 0 0; } }
+@keyframes panel-out { from { opacity: 1; scale: 1; translate: 0 0; } to { opacity: 0; scale: 0.92; translate: 0 14px; } }
+@keyframes sheet-in { from { translate: 0 100%; } to { translate: 0 0; } }
+@keyframes sheet-out { from { translate: 0 0; } to { translate: 0 100%; } }
+@keyframes unfold-in { from { opacity: 0; scale: 1 0.92; translate: 0 -8px; } to { opacity: 1; scale: 1 1; translate: 0 0; } }
+@keyframes unfold-out { from { opacity: 1; scale: 1 1; } to { opacity: 0; scale: 1 0.94; translate: 0 -6px; } }
+@keyframes msg-in-left { from { opacity: 0; translate: -10px 8px; scale: 0.97; } to { opacity: 1; translate: 0 0; scale: 1; } }
+@keyframes msg-in-right { from { opacity: 0; translate: 10px 8px; scale: 0.97; } to { opacity: 1; translate: 0 0; scale: 1; } }
+@keyframes bump { 0% { scale: 1; } 40% { scale: 1.35; } 100% { scale: 1; } }
+@keyframes dot { 0%, 80%, 100% { opacity: 0.3; translate: 0 0; } 40% { opacity: 1; translate: 0 -3px; } }
+
+.motion-page { animation: page-in var(--dur-slow) var(--ease-out) both; }
+.motion-fade { animation: fade-in var(--dur-base) var(--ease-out) both; }
+.motion-rise { animation: rise-in var(--dur-slow) var(--ease-out) both; }
+.motion-bump { animation: bump 320ms var(--ease-out); }
+.motion-msg-left { animation: msg-in-left var(--dur-base) var(--ease-out) both; }
+.motion-msg-right { animation: msg-in-right var(--dur-base) var(--ease-out) both; }
+.motion-dot { animation: dot 1s ease-in-out infinite; }
+
+/* Lists settle in one after another (first ten items). */
+.motion-stagger > * { animation: rise-in var(--dur-slow) var(--ease-out) both; }
+.motion-stagger > :nth-child(2) { animation-delay: 50ms; }
+.motion-stagger > :nth-child(3) { animation-delay: 100ms; }
+.motion-stagger > :nth-child(4) { animation-delay: 150ms; }
+.motion-stagger > :nth-child(5) { animation-delay: 200ms; }
+.motion-stagger > :nth-child(6) { animation-delay: 240ms; }
+.motion-stagger > :nth-child(7) { animation-delay: 280ms; }
+.motion-stagger > :nth-child(8) { animation-delay: 320ms; }
+.motion-stagger > :nth-child(n+9) { animation-delay: 350ms; }
+
+/* Dropdowns grow from the trigger's corner. */
+.motion-pop { transform-origin: top right; animation-duration: var(--dur-base); animation-timing-function: var(--ease-out); animation-fill-mode: both; }
+.motion-pop[data-state="open"] { animation-name: pop-in; }
+.motion-pop[data-state="closed"] { animation-name: pop-out; animation-duration: var(--dur-fast); animation-timing-function: var(--ease-in); }
+
+/* Assistant: bottom sheet on phones, panel growing out of its button on larger screens. */
+.motion-panel { transform-origin: bottom right; animation-fill-mode: both; }
+.motion-panel[data-state="open"] { animation: sheet-in 360ms var(--ease-out) both; }
+.motion-panel[data-state="closed"] { animation: sheet-out 220ms var(--ease-in) both; }
+@media (min-width: 768px) {
+  .motion-panel[data-state="open"] { animation: panel-in 320ms var(--ease-out) both; }
+  .motion-panel[data-state="closed"] { animation: panel-out 180ms var(--ease-in) both; }
+}
+
+/* Composer unfolds downward from the field it replaces. */
+.motion-unfold { transform-origin: top left; animation-fill-mode: both; }
+.motion-unfold[data-state="open"] { animation: unfold-in var(--dur-base) var(--ease-out) both; }
+.motion-unfold[data-state="closed"] { animation: unfold-out var(--dur-fast) var(--ease-in) both; }
+
+/* Press feedback for every plain button; components with their own transitions opt in via utilities. */
+@layer components {
+  button, [role="button"] { transition: transform var(--dur-fast) var(--ease-out), background-color var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast), opacity var(--dur-fast); }
+  button:not(:disabled):active, [role="button"]:active { transform: scale(0.96); }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }

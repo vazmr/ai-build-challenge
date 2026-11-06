@@ -1,4 +1,5 @@
-import { RotateCcw } from 'lucide-react'
+import { Compass, RotateCcw } from 'lucide-react'
+import { clearTourSeen, startTour } from '../onboarding/tourStorage'
 import { Button, Card, PageHeader, Select } from '../../components/shared/ui'
 import { useAppState } from '../../hooks/useAppState'
 import { useDirectory } from '../../hooks/useDirectory'
@@ -7,7 +8,7 @@ import { resetRecommendations } from '../../services/feedService'
 import { PROFILE_SECTIONS, setSectionVisibility } from '../../services/profileService'
 import type { Visibility } from '../../types'
 
-const VIS: Record<Visibility, string> = { public: 'Public', 'temple-only': 'Temple-only (simulated)', private: 'Private' }
+const VIS: Record<Visibility, string> = { public: 'Public', 'temple-only': 'Temple-only', private: 'Private' }
 
 export function SettingsPage() {
   const { state, activeStudent, update, resetDemoData } = useAppState()
@@ -19,11 +20,11 @@ export function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
-      <PageHeader title="Settings & Privacy" description={`Signed in as demo persona ${activeStudent.displayName}. This is a simulation: there are no passwords or real accounts.`} />
+      <PageHeader title="Settings & Privacy" description={`Signed in as ${activeStudent.displayName}.`} />
 
       <Card>
         <h2 className="text-lg font-semibold">Profile visibility</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Choose who can see each section of your profile. “Temple-only” is simulated.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Choose who can see each section of your profile. </p>
         <ul className="mt-3 space-y-2">{PROFILE_SECTIONS.map((sec) => (
           <li key={sec.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
             <label htmlFor={`vis-${sec.id}`} className="font-medium">{sec.label}</label>
@@ -58,9 +59,19 @@ export function SettingsPage() {
       </Card>
 
       <Card>
-        <h2 className="text-lg font-semibold">Demo data</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Prototype changes are stored in this browser only. Resetting restores the original fictional sample data.</p>
-        <Button variant="primary" className="mt-4" onClick={() => { if (window.confirm('Reset all demo data to the original sample state?')) resetDemoData() }}><RotateCcw aria-hidden className="size-4" /> Reset demo data</Button>
+        <h2 className="text-lg font-semibold">Product tour</h2>
+        <p className="mt-1 text-sm text-muted-foreground">A one-minute walk through Feed, Events, Map, Community, Projects and the assistant.</p>
+        <Button className="mt-3" onClick={startTour}><Compass aria-hidden className="size-4" /> Replay tour</Button>
+      </Card>
+
+      <Card>
+        <h2 className="text-lg font-semibold">App data</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Your changes are stored in this browser. Resetting restores the starting data.</p>
+        <Button variant="primary" className="mt-4" onClick={() => { if (window.confirm('Reset all app data to the starting state?')) { clearTourSeen(); resetDemoData() } }}><RotateCcw aria-hidden className="size-4" /> Reset app data</Button>
+      </Card>
+      <Card>
+        <h2 className="text-lg font-semibold">About Temple Student Hub</h2>
+        <p className="mt-1 max-w-prose text-sm text-muted-foreground">An independent student project, not an official Temple University product. It is not connected to university systems, so events, organizations and resources shown here aren’t officially verified. Always confirm details with official Temple sources.</p>
       </Card>
     </div>
   )

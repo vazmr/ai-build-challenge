@@ -30,7 +30,6 @@ export function ChatPanel({ conversationId, title }: { conversationId: string; t
         <input aria-label="Message" value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Write a message…" className="min-h-10 flex-1 rounded-lg border border-border px-3 text-sm" />
         <Button type="submit" variant="primary" disabled={!draft.trim()}>Send</Button>
       </form>
-      <p className="mt-2 text-xs text-muted-foreground">Prototype chat: stored only in this browser, not real-time.</p>
     </Card>
   )
 }

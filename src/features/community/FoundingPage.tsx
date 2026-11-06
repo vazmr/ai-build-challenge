@@ -14,7 +14,7 @@ export function FoundingPage() {
   const [invitee, setInvitee] = useState('')
   const me = activeStudent.id
   const community = state.communities.find((c) => c.id === communityId)
-  if (!community) return <EmptyState title="Group not found" />
+  if (!community) return <EmptyState title="Group not found" action={<Link to="/community" className="text-sm font-semibold text-brand hover:underline">Back to Community</Link>} />
 
   const ws = workspaceFor(state, communityId)
   const isFounder = state.communityMemberships.some((m) => m.communityId === communityId && m.studentId === me && m.role === 'founder')

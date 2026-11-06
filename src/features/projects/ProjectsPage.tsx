@@ -1,35 +1,91 @@
-import { Plus } from 'lucide-react'
+import { ArrowRight, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { gradientFor } from '../../utils/art'
-import { Badge, Button, Card, EmptyState, Field, Input, PageHeader, Select, Tabs, Tags, Textarea } from '../../components/shared/ui'
+import { ProjectCover, deadlineInfo } from './projectUi'
+import { Avatar, Button, Card, EmptyState, Field, Input, PageHeader, Select, Tabs, Textarea } from '../../components/shared/ui'
 import { parseList } from '../../utils/parseList'
 import { useAppState } from '../../hooks/useAppState'
 import { useDirectory } from '../../hooks/useDirectory'
-import { PROJECT_CATEGORIES, createProject, discoverableProjects, myProjects } from '../../services/projectsService'
+import { PROJECT_CATEGORIES, activeMembers, createProject, discoverableProjects, myProjects } from '../../services/projectsService'
 import type { Project, ProjectKind } from '../../types'
 
 type Tab = 'help' | 'collaborators' | 'mine'
 
-function ProjectCard({ project, showStatus }: { project: Project; showStatus?: boolean }) {
+function ProjectCard({ project, showStatus, featured }: { project: Project; showStatus?: boolean; featured?: boolean }) {
+  const { state } = useAppState()
   const { studentName } = useDirectory()
+  const team = activeMembers(state, project.id)
+  const dl = deadlineInfo(project.deadline)
+  const roles = project.roles?.map((r) => r.title) ?? project.skillsNeeded
+  const offering = project.kind === 'offer-help'
+  const lead = project.kind === 'need-help' ? 'Needs' : offering ? 'Offers' : 'Looking for'
   return (
-    <Card className="overflow-hidden !p-0">
-      <div className="h-2" style={{ backgroundImage: gradientFor(project.category) }} aria-hidden />
-      <div className="p-4">
-      <div className="flex flex-wrap gap-1.5">
-        <Badge tone="brand">{project.category}</Badge>
-        {project.kind === 'need-help' && <Badge>Needs help</Badge>}
-        {project.kind === 'offer-help' && <Badge tone="success">Offering help</Badge>}
-        {showStatus && <Badge tone={project.status === 'private' ? 'neutral' : 'info'}>{project.status === 'private' ? 'Private' : project.status}</Badge>}
+    <article className={`group overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition-[box-shadow,transform] duration-200 ease-out focus-within:ring-2 focus-within:ring-brand hover:-translate-y-0.5 hover:shadow-md ${featured ? 'md:col-span-2 md:grid md:grid-cols-[1.1fr_1fr]' : ''}`}>
+      <ProjectCover project={project} className={featured ? 'h-52 md:h-full md:min-h-72' : 'h-44'}>
+        <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
+          <span className="rounded-full bg-white/95 px-2.5 py-1 text-xs font-semibold text-foreground">{project.category}</span>
+          {showStatus && <span className="rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold text-white">{project.status === 'private' ? 'Private' : project.status}</span>}
+        </div>
+        {dl && <span className={`absolute right-3 top-3 rounded-full px-2.5 py-1 text-xs font-semibold ${dl.urgent ? 'bg-brand text-white' : 'bg-white/95 text-foreground'}`}>{dl.label}</span>}
+        {!featured && <h3 className="absolute inset-x-4 bottom-3 text-lg font-bold leading-snug text-white [text-wrap:balance]">{project.title}</h3>}
+      </ProjectCover>
+      <div className="flex flex-col p-4 md:p-5">
+        {featured && <h3 className="text-2xl font-bold leading-tight [text-wrap:balance]">{project.title}</h3>}
+        <p className={`${featured ? 'mt-2 text-base' : 'text-sm'} text-foreground [text-wrap:pretty]`}>{project.pitch ?? project.description}</p>
+        {roles.length > 0 && (
+          <div className="mt-3">
+            <p className="text-xs font-semibold text-muted-foreground">{lead}</p>
+            <ul className="mt-1.5 flex flex-wrap gap-1.5">{roles.map((r) => <li key={r} className="rounded-full border border-brand/30 bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand">{r}</li>)}</ul>
+          </div>
+        )}
+        <div className="mt-auto flex items-center justify-between gap-3 pt-4">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span className="flex -space-x-2">{[project.ownerId, ...team.map((m) => m.studentId).filter((id) => id !== project.ownerId)].slice(0, 3).map((id) => <span key={id} className="rounded-full ring-2 ring-surface"><Avatar name={studentName(id)} size={30} /></span>)}</span>
+            <span className="min-w-0 text-xs leading-tight text-muted-foreground"><span className="block truncate font-semibold text-foreground">Led by {studentName(project.ownerId)}</span>{team.length > 1 ? `${team.length} on the team` : 'Just getting started'}</span>
+          </div>
+          <Link to={`/projects/${project.id}`} className="inline-flex min-h-10 shrink-0 items-center gap-1 rounded-lg bg-brand px-3.5 text-sm font-semibold text-white hover:bg-brand-hover after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-offset-2">
+            {offering ? 'See how they can help' : 'See the roles'} <ArrowRight aria-hidden className="size-4" />
+          </Link>
+        </div>
       </div>
-      <h2 className="mt-2 font-semibold"><Link to={`/projects/${project.id}`} className="hover:underline">{project.title}</Link></h2>
-      <p className="mt-1 line-clamp-3 text-sm text-muted-foreground">{project.description}</p>
-      {project.skillsNeeded.length > 0 && <div className="mt-2"><p className="mb-1 text-xs font-medium">{project.kind === 'offer-help' ? 'Skills offered' : 'Skills needed'}</p><Tags tags={project.skillsNeeded} /></div>}
-      <p className="mt-2 text-xs text-muted-foreground">By {studentName(project.ownerId)}{project.deadline ? ` · Deadline ${project.deadline}` : ''}</p>
-      </div>
-    </Card>
+    </article>
   )
+}
+
+const TAB_COPY: Record<Exclude<Tab, 'mine'>, { title: string; blurb: string }> = {
+  collaborators: { title: 'Teams with open roles', blurb: 'Projects that need people to join the crew. Each role says what you would actually do.' },
+  help: { title: 'A hand, given or asked for', blurb: 'Quick, one-off favours: students asking for feedback or testers, and students offering their skills for free.' },
+}
+
+function Section({ title, blurb, children }: { title: string; blurb?: string; children: React.ReactNode }) {
+  return (
+    <section className="mb-8">
+      <h2 className="text-lg font-bold">{title}</h2>
+      {blurb && <p className="mb-3 mt-0.5 max-w-prose text-sm text-muted-foreground">{blurb}</p>}
+      {children}
+    </section>
+  )
+}
+
+/** My Projects, grouped by what you do in each: lead, take part, or have finished. */
+function MineSections({ list, me }: { list: Project[]; me: string }) {
+  if (list.length === 0) {
+    return <EmptyState title="You have no projects yet" description="Start a private project of your own, or ask to join one from Find Collaborators." />
+  }
+  const finished = list.filter((p) => p.status === 'completed' || p.status === 'archived')
+  const open = list.filter((p) => !finished.includes(p))
+  const leading = open.filter((p) => p.ownerId === me)
+  const joined = open.filter((p) => p.ownerId !== me)
+  const groups = [
+    { title: 'Projects you lead', blurb: 'You decide who joins and when to publish.', items: leading },
+    { title: 'Projects you’re part of', blurb: 'Your role and tasks live inside each project.', items: joined },
+    { title: 'Finished', blurb: 'Credit stays on your profile.', items: finished },
+  ].filter((g) => g.items.length > 0)
+  return <>{groups.map((g) => (
+    <Section key={g.title} title={g.title} blurb={g.blurb}>
+      <div className="motion-stagger grid gap-5 md:grid-cols-2">{g.items.map((p) => <ProjectCard key={p.id} project={p} showStatus />)}</div>
+    </Section>
+  ))}</>
 }
 
 export function ProjectsPage() {
@@ -50,7 +106,7 @@ export function ProjectsPage() {
 
   return (
     <div>
-      <PageHeader title="Projects" description="Peer collaboration, not a freelance marketplace. New projects start private; you choose when to publish."
+      <PageHeader title="Projects" description="Real things students are making right now, and the roles still open. Find one that excites you and ask to join. Peer collaboration, not a freelance marketplace."
         actions={<Button variant="primary" onClick={() => setCreating((c) => !c)} aria-expanded={creating}><Plus aria-hidden className="size-4" /> New project</Button>} />
 
       {creating && (
@@ -69,9 +125,13 @@ export function ProjectsPage() {
       )}
 
       <Tabs<Tab> label="Project views" value={tab} onChange={setTab} tabs={[{ id: 'collaborators', label: 'Find Collaborators' }, { id: 'help', label: 'Find Help' }, { id: 'mine', label: 'My Projects' }]} />
-      {list.length === 0 ? (
-        <EmptyState title={tab === 'mine' ? 'You have no projects yet' : 'Nothing posted yet'} description={tab === 'mine' ? 'Create a private project to get started.' : 'Check back soon, or post your own.'} />
-      ) : <div className="grid gap-4 md:grid-cols-2">{list.map((p) => <ProjectCard key={p.id} project={p} showStatus={tab === 'mine'} />)}</div>}
+      {tab === 'mine' ? <MineSections list={list} me={activeStudent.id} /> : (
+        <Section title={TAB_COPY[tab].title} blurb={TAB_COPY[tab].blurb}>
+          {list.length === 0
+            ? <EmptyState title="Nothing posted yet" description="Check back soon, or post your own." />
+            : <div className="motion-stagger grid gap-5 md:grid-cols-2">{list.map((p, i) => <ProjectCard key={p.id} project={p} featured={i === 0 && list.length > 2} />)}</div>}
+        </Section>
+      )}
     </div>
   )
 }

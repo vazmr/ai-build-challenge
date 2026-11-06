@@ -2,6 +2,7 @@ import type { CampusEvent, EventParticipation, PersistedAppState } from '../type
 import { newId, nowIso } from '../utils/id'
 import { dayKey } from '../utils/format'
 import { hasOrgPermission } from '../utils/permissions'
+import { blockedIdsFor } from './blockService'
 
 export const EVENT_CATEGORIES = [
   'Music & Entertainment', 'Arts & Culture', 'Social', 'Academic',
@@ -68,7 +69,28 @@ export function createOrgEvent(s: PersistedAppState, actorId: string, organizati
   const e: CampusEvent = {
     id: newId('ev'), title: i.title.trim(), description: i.description.trim(), hostOrganizationId: organizationId, category: i.category,
     startAt: `${i.date}T${i.startTime}:00-05:00`, endAt: `${i.date}T${i.endTime}:00-05:00`, locationName: i.locationName.trim() || 'TBD',
-    priceLabel: i.priceLabel.trim() || 'Free', campus: 'Main Campus', status: 'published', isDemoContent: true,
+    priceLabel: i.priceLabel.trim() || 'Free', campus: 'Main Campus', status: 'published',
   }
   return { ...s, events: [...s.events, e] }
+}
+
+/**
+ * Students who RSVP'd "going" (simulated). People the viewer blocked are left out.
+ * Order: the viewer, then people the viewer follows, then everyone else.
+ */
+export function goingStudents(s: PersistedAppState, viewerId: string, eventId: string) {
+  const blocked = blockedIdsFor(s, viewerId)
+  const followed = new Set(s.follows.filter((f) => f.followerId === viewerId && f.targetType === 'student').map((f) => f.targetId))
+  const rank = (id: string) => (id === viewerId ? 0 : followed.has(id) ? 1 : 2)
+  return s.eventParticipations
+    .filter((p) => p.eventId === eventId && p.state === 'going' && !blocked.has(p.studentId))
+    .map((p) => s.students.find((x) => x.id === p.studentId))
+    .filter((x) => x !== undefined)
+    .sort((a, b) => rank(a.id) - rank(b.id) || a.displayName.localeCompare(b.displayName))
+}
+
+/** Followed students who are going. Following stays private; this only informs the viewer's own view. */
+export function friendsGoing(s: PersistedAppState, viewerId: string, eventId: string) {
+  const followed = new Set(s.follows.filter((f) => f.followerId === viewerId && f.targetType === 'student').map((f) => f.targetId))
+  return goingStudents(s, viewerId, eventId).filter((x) => followed.has(x.id))
 }

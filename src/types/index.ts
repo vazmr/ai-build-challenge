@@ -10,6 +10,8 @@ export interface StudentProfile {
   college?: string
   classYear?: string
   bio?: string
+  /** Optional photo banner for the profile; falls back to the theme gradient. */
+  coverUrl?: string
   interests: string[]
   skills: string[]
   /** Profile customization: index into the shared palette list (cover + accent). */
@@ -77,6 +79,10 @@ export interface Post {
   body?: string
   /** Label for photo/video/audio placeholders (no real media in the prototype). */
   mediaLabel?: string
+  /** Real image URLs (photo/album) or poster/cover image (video/audio). */
+  mediaUrls?: string[]
+  /** Playable audio source for audio posts. */
+  audioUrl?: string
   linkUrl?: string
   isDraft?: boolean
   pinned?: boolean
@@ -106,9 +112,10 @@ export interface CampusEvent {
   endAt: string
   locationName: string
   priceLabel: string
+  /** Optional photo cover; events without one use generated artwork. */
+  coverUrl?: string
   campus?: 'Main Campus' | 'Center City' | 'Online'
   status: 'draft' | 'published' | 'cancelled'
-  isDemoContent: boolean
 }
 
 export interface EventParticipation {
@@ -189,8 +196,22 @@ export interface Project {
   status: ProjectStatus
   isPublished: boolean
   deadline?: string
+  /** One-line hook shown on cards: why someone would want to be part of this. */
+  pitch?: string
+  coverUrl?: string
+  /** Open roles, each with what the person would actually do. */
+  roles?: ProjectRole[]
+  /** What contributors take away (credit, portfolio pieces, skills). */
+  perks?: string[]
+  /** Expected time, e.g. "3–4 hrs/week for 8 weeks". */
+  commitment?: string
   createdAt: string
   updatedAt: string
+}
+
+export interface ProjectRole {
+  title: string
+  description: string
 }
 
 export interface ProjectMembership {
@@ -282,7 +303,7 @@ export interface Resource {
   locationName?: string
   eligibility?: string
   cost?: string
-  sourceType: 'official' | 'student-submitted' | 'demo'
+  sourceType: 'official' | 'student-submitted' | 'unverified'
   lastVerifiedAt?: string
 }
 

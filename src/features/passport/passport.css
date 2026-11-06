@@ -1,0 +1,128 @@
+/* Student Passport: a physical-feeling booklet.
+   Geometry: every page is --pw wide and --ph tall. The book is a 2-page "stage"; each sheet hinges on the spine
+   (left edge of the right half) and swings 180deg onto the left half, carrying its back face with it. */
+
+.pp-root, .pp-mini {
+  --pw: min(23rem, calc((100vw - 2rem) / 2), calc((100dvh - 11.5rem) / 1.46));
+  --ph: calc(var(--pw) * 1.46);
+  --flip: 900ms;
+  --flip-ease: cubic-bezier(0.55, 0.06, 0.2, 1);
+  --leather: #8c1428;
+  --leather-hi: #b3213a;
+  --leather-lo: #5f0c1b;
+  --foil: linear-gradient(120deg, #7a5a14 0%, #e8cd7a 22%, #fff3c4 38%, #c9a449 55%, #8a6a1c 78%, #e8cd7a 100%);
+  --paper: #f6efdf;
+  --paper-ink: #2b2a28;
+  --paper-mute: #5d574c;
+  --paper-rule: #d8cdb4;
+}
+.pp-root[data-narrow="true"] { --pw: min(20rem, calc(100vw - 3rem)); }
+
+/* ---------- Overlay ---------- */
+.pp-overlay { animation: fade-in 260ms var(--ease-out) both; }
+.pp-overlay[data-closing="true"] { animation: fade-in 240ms var(--ease-in) reverse both; animation-delay: calc(var(--flip) * 0.7); }
+
+/* ---------- Book ---------- */
+.pp-window { position: relative; width: calc(var(--pw) * 2); height: var(--ph); perspective: 2400px; perspective-origin: 50% 40%; }
+.pp-root[data-narrow="true"] .pp-window { width: var(--pw); clip-path: inset(-3rem 0 -3rem 0); }
+.pp-stage {
+  position: absolute; inset: 0 auto 0 0; width: calc(var(--pw) * 2);
+  transform-style: preserve-3d;
+  transition: transform var(--flip) var(--flip-ease);
+  transform: translateX(var(--shift, 0%));
+}
+.pp-stage[data-open="false"] { transform: translateX(var(--shift)) rotateZ(-2.5deg) rotateX(6deg); }
+
+.pp-ground { position: absolute; left: 4%; right: 4%; bottom: -1.6rem; height: 2.4rem; border-radius: 50%; background: radial-gradient(closest-side, rgba(0,0,0,.5), transparent); filter: blur(6px); transition: opacity var(--flip), transform var(--flip) var(--flip-ease); }
+
+/* Back cover (right half, under all pages) and the stack of pages already turned (left half). */
+.pp-base, .pp-leftstack { position: absolute; top: -6px; bottom: -6px; width: var(--pw); }
+.pp-base { left: var(--pw); border-radius: 0 10px 10px 0; background: linear-gradient(100deg, var(--leather-lo), var(--leather)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
+.pp-base::after { content: ""; position: absolute; inset: 6px 0 6px 0; background: var(--paper); border-radius: 0 4px 4px 0; opacity: var(--right-stack, 1); box-shadow: 1px 1px 0 #ddd3bb, 2px 2px 0 #d2c8ae, 3px 3px 0 #c8bda2; transition: opacity var(--flip); }
+.pp-leftstack { left: 0; border-radius: 10px 0 0 10px; background: linear-gradient(260deg, var(--leather-lo), var(--leather)); opacity: var(--left-stack, 0); transition: opacity var(--flip); }
+.pp-leftstack::after { content: ""; position: absolute; inset: 6px 0 6px 0; background: var(--paper); border-radius: 4px 0 0 4px; box-shadow: -1px 1px 0 #ddd3bb, -2px 2px 0 #d2c8ae, -3px 3px 0 #c8bda2; }
+
+.pp-sheet { position: absolute; top: 0; left: var(--pw); width: var(--pw); height: 100%; transform-origin: left center; transform-style: preserve-3d; }
+.pp-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden; background: var(--paper); color: var(--paper-ink); }
+.pp-face.pp-front { border-radius: 0 6px 6px 0; }
+.pp-face.pp-back { border-radius: 6px 0 0 6px; transform: rotateY(180deg); }
+
+/* Paper grain + fine guilloche lines, like a security-printed page. */
+.pp-paper {
+  background-color: var(--paper);
+  background-image:
+    repeating-radial-gradient(circle at 50% 118%, rgba(167,25,48,.055) 0 1px, transparent 1px 6px),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .35  0 0 0 0 .3  0 0 0 0 .2  0 0 0 .09 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+}
+/* Inner-spine shading on every page face. */
+.pp-front::before, .pp-back::before { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+.pp-front::before { background: linear-gradient(90deg, rgba(40,25,10,.22), rgba(40,25,10,0) 9%); }
+.pp-back::before { background: linear-gradient(270deg, rgba(40,25,10,.22), rgba(40,25,10,0) 9%); }
+/* Turn shading: the page darkens as it swings edge-on, like light raking across paper. */
+.pp-face::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 6; background: linear-gradient(90deg, rgba(30,15,0,.55), rgba(30,15,0,.05)); opacity: 0; }
+.pp-sheet[data-moving="true"] .pp-face::after { animation: pp-shade var(--flip) ease-in-out both; animation-delay: var(--delay, 0ms); }
+@keyframes pp-shade { 0% { opacity: 0; } 45% { opacity: .55; } 100% { opacity: 0; } }
+
+.pp-gutter { position: absolute; top: 0; bottom: 0; left: calc(var(--pw) - 1.4rem); width: 2.8rem; pointer-events: none; z-index: 1000; background: radial-gradient(closest-side, rgba(30,15,0,.28), transparent); transition: opacity var(--flip); }
+
+/* Page-corner peel: hints that the page can be turned by its outer corner. */
+.pp-peel { position: absolute; bottom: 0; width: 2.6rem; height: 2.6rem; z-index: 8; cursor: pointer; background: none; border: 0; padding: 0; }
+.pp-peel::after { content: ""; position: absolute; bottom: 0; width: 0; height: 0; transition: width 220ms var(--ease-out), height 220ms var(--ease-out); }
+.pp-front .pp-peel { right: 0; }
+.pp-front .pp-peel::after { right: 0; background: linear-gradient(315deg, #cfc4a8 0 50%, rgba(0,0,0,.18) 50%); border-top-left-radius: 8px; box-shadow: -2px -2px 6px rgba(0,0,0,.18); }
+.pp-back .pp-peel { left: 0; }
+.pp-back .pp-peel::after { left: 0; background: linear-gradient(45deg, #cfc4a8 0 50%, rgba(0,0,0,.18) 50%); border-top-right-radius: 8px; box-shadow: 2px -2px 6px rgba(0,0,0,.18); }
+.pp-peel:hover::after, .pp-peel:focus-visible::after { width: 1.9rem; height: 1.9rem; }
+.pp-peel:active { transform: none; }
+
+/* ---------- Cover ---------- */
+.pp-cover {
+  position: absolute; inset: -6px -6px -6px 0; border-radius: 3px 12px 12px 3px; overflow: hidden; color: #f3dd95;
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.45) 0, rgba(0,0,0,0) 3.5%, rgba(255,255,255,.07) 4.5%, rgba(0,0,0,0) 9%),
+    radial-gradient(120% 90% at 30% 10%, var(--leather-hi), var(--leather) 45%, var(--leather-lo) 100%);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), inset 0 0 28px rgba(0,0,0,.35);
+}
+.pp-cover::before { content: ""; position: absolute; inset: 0; opacity: .5; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='l'><feTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .2  0 0 0 0 .02  0 0 0 0 .05  0 0 0 .55 0'/></filter><rect width='120' height='120' filter='url(%23l)'/></svg>"); }
+.pp-cover-frame { position: absolute; inset: 1.1rem 1.1rem 1.1rem 1.5rem; border: 1px solid rgba(243,221,149,.55); border-radius: 4px; }
+.pp-foil { background: var(--foil); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none; filter: drop-shadow(0 1px 0 rgba(0,0,0,.45)); background-size: 220% 100%; }
+.pp-cover:hover .pp-foil, .pp-foil-live { animation: pp-foil 2.6s ease-in-out infinite alternate; }
+@keyframes pp-foil { from { background-position: 0% 0; } to { background-position: 100% 0; } }
+.pp-emboss { filter: drop-shadow(0 1px 0 rgba(0,0,0,.5)); }
+
+/* ---------- Stamps ---------- */
+.pp-stamp { position: relative; width: 100%; aspect-ratio: 1; rotate: var(--r, 0deg); filter: url(#pp-ink); opacity: .93; mix-blend-mode: multiply; }
+.pp-stamp-fresh { animation: pp-stamp 640ms cubic-bezier(0.2, 0.9, 0.25, 1.15) both; }
+.pp-stamp-fresh::after { content: ""; position: absolute; inset: 8%; border-radius: 50%; border: 2px solid currentColor; opacity: 0; animation: pp-ink-ring 760ms ease-out 180ms both; pointer-events: none; }
+@keyframes pp-stamp {
+  0% { opacity: 0; scale: 2.4; rotate: calc(var(--r) - 16deg); translate: 0 -14px; }
+  48% { opacity: 1; scale: .9; rotate: var(--r); translate: 0 0; }
+  66% { scale: 1.05; }
+  100% { opacity: .93; scale: 1; rotate: var(--r); }
+}
+@keyframes pp-ink-ring { 0% { opacity: .5; scale: .8; } 100% { opacity: 0; scale: 1.5; } }
+.pp-slot { width: 100%; aspect-ratio: 1; color: #a89d83; }
+
+/* The page the stamp lands on dips a hair, as if pressed. */
+.pp-thud { animation: pp-thud 220ms ease-out; }
+@keyframes pp-thud { 0% { translate: 0 0; } 35% { translate: 0 2.5px; } 100% { translate: 0 0; } }
+
+/* ---------- Rail card cover (closed passport) ---------- */
+.pp-mini { position: relative; width: 5.6rem; aspect-ratio: 0.71; perspective: 600px; flex: none; }
+.pp-mini-block { position: absolute; inset: 0; transform-origin: left center; transition: transform 420ms var(--flip-ease), box-shadow 420ms; transform: rotateY(0deg); box-shadow: 3px 4px 10px rgba(60,10,20,.28); border-radius: 3px 8px 8px 3px; }
+.pp-mini-pages { position: absolute; inset: 3px 0 3px 2px; background: var(--paper); border-radius: 2px 5px 5px 2px; box-shadow: 1px 1px 0 #d6ccb2, 2px 2px 0 #cbc0a6; }
+button:hover > .pp-mini .pp-mini-block, button:focus-visible > .pp-mini .pp-mini-block { transform: rotateY(-24deg); box-shadow: 8px 6px 14px rgba(60,10,20,.3); }
+.pp-mini-cover { position: absolute; inset: 0; border-radius: 3px 8px 8px 3px; overflow: hidden; color: #f3dd95; background: linear-gradient(90deg, rgba(0,0,0,.4) 0, rgba(0,0,0,0) 6%, rgba(255,255,255,.08) 8%, rgba(0,0,0,0) 14%), radial-gradient(120% 90% at 30% 10%, var(--leather-hi), var(--leather) 50%, var(--leather-lo)); }
+.pp-newdot { animation: pp-pulse 1.8s ease-in-out infinite; }
+@keyframes pp-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(167,25,48,.45); } 50% { box-shadow: 0 0 0 6px rgba(167,25,48,0); } }
+
+/* Completion seal */
+.pp-seal { background: conic-gradient(from 0deg, #e8cd7a, #fff3c4, #c9a449, #8a6a1c, #e8cd7a, #fff3c4, #c9a449, #e8cd7a); animation: pp-spin 9s linear infinite; }
+@keyframes pp-spin { to { rotate: 360deg; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-stage, .pp-stage[data-open="false"] { transition-duration: 0.01ms !important; }
+  .pp-seal, .pp-foil-live, .pp-newdot { animation: none !important; }
+  .pp-sheet[data-moving="true"] .pp-face::after { animation: none !important; }
+}

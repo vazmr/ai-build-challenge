@@ -1,4 +1,4 @@
-import { RotateCcw } from 'lucide-react'
+import { RotateCcw, SlidersHorizontal } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { DiscoveryRail } from '../../components/layout/DiscoveryRail'
@@ -6,8 +6,10 @@ import { Button, Card, EmptyState, PageHeader, Tabs } from '../../components/sha
 import { CURATED_TAGS } from '../../data/seed'
 import { useAppState } from '../../hooks/useAppState'
 import { getFeed, resetRecommendations, toggleInterest, type FeedMode } from '../../services/feedService'
+import { PassportCard } from '../passport/PassportCard'
 import { PostCard } from './PostCard'
 import { PostComposer } from './PostComposer'
+import { StartHere } from './StartHere'
 
 const MODES: { id: FeedMode; label: string }[] = [
   { id: 'for-you', label: 'For You' },
@@ -29,14 +31,16 @@ export function FeedPage() {
   const hiddenCount = state.hiddenPosts.filter((h) => h.studentId === activeStudent.id).length
 
   return (
-    <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[minmax(0,40rem)_18rem]">
-      <div>
-      <PageHeader title="Feed" description="Posts from students and organizations. No public like or follower counts." actions={<Button onClick={() => setTuning((t) => !t)} aria-expanded={tuning}>Tune your feed</Button>} />
+    <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-[minmax(0,40rem)_18rem]">
+      <div className="min-w-0">
+      <PageHeader title="Feed" actions={<Button onClick={() => setTuning((t) => !t)} aria-expanded={tuning} aria-label="Tune your feed"><SlidersHorizontal aria-hidden className="size-4" /> Tune</Button>} />
+      <PassportCard className="mb-5 lg:hidden" />
+      <StartHere />
 
       {tuning && (
-        <Card className="mb-5">
+        <Card className="motion-rise mb-5">
           <h2 className="font-semibold">Your interests</h2>
-          <p className="mt-1 text-sm text-muted-foreground">These shape For You. They stay private to you.</p>
+          <p className="mt-1 text-sm text-muted-foreground">These shape For You and stay private to you. The feed never shows public like or follower counts.</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {CURATED_TAGS.map((t) => {
               const on = activeStudent.interests.includes(t)
@@ -62,7 +66,7 @@ export function FeedPage() {
       {posts.length === 0 ? (
         <EmptyState {...EMPTY[mode]} action={mode === 'following' ? <Link to="/community" className="text-sm font-semibold text-brand hover:underline">Browse communities</Link> : undefined} />
       ) : (
-        <div className="space-y-4">{posts.map((p) => <PostCard key={p.id} post={p} />)}</div>
+        <div key={mode} className="motion-stagger space-y-4">{posts.map((p) => <PostCard key={p.id} post={p} />)}</div>
       )}
       </div>
       <div className="lg:pt-[4.5rem]"><DiscoveryRail /></div>

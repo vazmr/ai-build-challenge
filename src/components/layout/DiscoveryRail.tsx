@@ -6,6 +6,7 @@ import { eventsOnDay, publishedEvents, upcomingEvents } from '../../services/eve
 import { discoverableProjects } from '../../services/projectsService'
 import { formatDay } from '../../utils/format'
 import { gradientFor } from '../../utils/art'
+import { PassportCard } from '../../features/passport/PassportCard'
 import { Card } from '../shared/ui'
 
 function Section({ title, icon, to, children }: { title: string; icon: ReactNode; to: string; children: ReactNode }) {
@@ -32,22 +33,23 @@ export function DiscoveryRail() {
 
   return (
     <aside aria-label="Discover" className="hidden space-y-4 lg:block">
+      <PassportCard />
       <Section title={todays.length ? 'Happening today' : 'Coming up'} icon={<CalendarDays aria-hidden className="size-4 text-brand" />} to="/events">
         <ul className="space-y-2">{shown.map((e) => (
           <li key={e.id} className="flex gap-2.5">
             <span className="mt-0.5 h-9 w-1.5 shrink-0 rounded-full" style={{ backgroundImage: gradientFor(e.category) }} aria-hidden />
-            <span className="min-w-0 text-sm"><Link to={`/events/${e.id}`} className="block truncate font-medium hover:underline">{e.title}</Link><span className="block text-xs text-muted-foreground">{formatDay(e.startAt)} · {e.locationName}</span></span>
+            <span className="min-w-0 text-sm"><Link to={`/events/${e.id}`} className="block truncate py-0.5 font-medium hover:underline">{e.title}</Link><span className="block text-xs text-muted-foreground">{formatDay(e.startAt)} · {e.locationName}</span></span>
           </li>
         ))}</ul>
       </Section>
       <Section title="Groups to explore" icon={<Users aria-hidden className="size-4 text-brand" />} to="/community">
         <ul className="space-y-2">{groups.map((g) => (
-          <li key={g.id} className="text-sm"><Link to={`/community/${g.id}`} className="font-medium hover:underline">{g.name}</Link><span className="block text-xs text-muted-foreground">Informal group</span></li>
+          <li key={g.id} className="text-sm"><Link to={`/community/${g.id}`} className="inline-block py-1 font-medium hover:underline">{g.name}</Link><span className="block text-xs text-muted-foreground">Informal group</span></li>
         ))}</ul>
       </Section>
       <Section title="Projects recruiting" icon={<Rocket aria-hidden className="size-4 text-brand" />} to="/projects">
         <ul className="space-y-2">{projects.map((p) => (
-          <li key={p.id} className="text-sm"><Link to={`/projects/${p.id}`} className="font-medium hover:underline">{p.title}</Link><span className="block text-xs text-muted-foreground">{p.category}</span></li>
+          <li key={p.id} className="text-sm"><Link to={`/projects/${p.id}`} className="inline-block py-1 font-medium hover:underline">{p.title}</Link><span className="block text-xs text-muted-foreground">{p.category}</span></li>
         ))}</ul>
       </Section>
     </aside>

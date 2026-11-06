@@ -1,5 +1,8 @@
+import { useEffect, useRef, useState } from 'react'
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
+import { MoreHorizontal } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { AVATARS } from '../../data/seed/avatars'
 import { gradientFor } from '../../utils/art'
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
@@ -16,13 +19,13 @@ export function Button({ variant = 'secondary', className = '', ...props }: Butt
     <button
       type="button"
       {...props}
-      className={`inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg px-3.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${className}`}
+      className={`inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg px-3.5 text-sm font-semibold transition-[transform,background-color,color,opacity] duration-150 active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${className}`}
     />
   )
 }
 
-export function Card({ children, className = '', id }: { children: ReactNode; className?: string; id?: string }) {
-  return <div id={id} className={`rounded-[var(--radius-card)] border border-border bg-surface p-4 ${className}`}>{children}</div>
+export function Card({ children, className = '', id, state }: { children: ReactNode; className?: string; id?: string; state?: string }) {
+  return <div id={id} data-state={state} className={`rounded-[var(--radius-card)] border border-border bg-surface p-4 ${className}`}>{children}</div>
 }
 
 export function Badge({ children, tone = 'neutral' }: { children: ReactNode; tone?: 'neutral' | 'brand' | 'success' | 'warning' | 'info' }) {
@@ -36,8 +39,6 @@ export function Badge({ children, tone = 'neutral' }: { children: ReactNode; ton
   return <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${tones[tone]}`}>{children}</span>
 }
 
-export const DemoBadge = () => <Badge tone="warning">Demo content</Badge>
-
 export function Tags({ tags }: { tags: string[] }) {
   if (!tags.length) return null
   return (
@@ -50,13 +51,19 @@ export function Tags({ tags }: { tags: string[] }) {
 }
 
 export function Avatar({ name, size = 36 }: { name: string; size?: number }) {
+  const [failed, setFailed] = useState(false)
+  const src = AVATARS[name]
   return (
     <span
       aria-hidden
       style={{ width: size, height: size, fontSize: size * 0.42, backgroundImage: gradientFor(name) }}
-      className="inline-flex shrink-0 items-center justify-center rounded-full font-semibold text-white"
+      className="inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold text-white"
     >
-      {name.charAt(0).toUpperCase()}
+      {src && !failed ? (
+        <img src={src} alt="" width={size} height={size} onError={() => setFailed(true)} className="size-full object-cover" />
+      ) : (
+        name.charAt(0).toUpperCase()
+      )}
     </span>
   )
 }
@@ -96,20 +103,35 @@ export function PageHeader({ title, description, actions }: { title: string; des
 }
 
 export function Tabs<T extends string>({ tabs, value, onChange, label }: { tabs: { id: T; label: string }[]; value: T; onChange: (id: T) => void; label: string }) {
+  const listRef = useRef<HTMLDivElement>(null)
+  const [moreRight, setMoreRight] = useState(false)
+  const measure = () => {
+    const el = listRef.current
+    if (el) setMoreRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4)
+  }
+  useEffect(() => {
+    measure()
+    listRef.current?.querySelector<HTMLElement>('[aria-selected="true"]')?.scrollIntoView({ inline: 'nearest', block: 'nearest' })
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [value, tabs.length])
   return (
-    <div role="tablist" aria-label={label} className="mb-5 flex gap-1 overflow-x-auto border-b border-border">
-      {tabs.map((t) => (
-        <button
-          key={t.id}
-          type="button"
-          role="tab"
-          aria-selected={value === t.id}
-          onClick={() => onChange(t.id)}
-          className={`min-h-11 shrink-0 border-b-2 px-3.5 text-sm font-medium ${value === t.id ? 'border-brand text-brand' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-        >
-          {t.label}
-        </button>
-      ))}
+    <div className="relative mb-5 border-b border-border">
+      <div ref={listRef} onScroll={measure} role="tablist" aria-label={label} className="flex gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            aria-selected={value === t.id}
+            onClick={() => onChange(t.id)}
+            className={`min-h-11 shrink-0 border-b-2 px-3.5 text-sm font-medium ${value === t.id ? 'border-brand text-brand' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+      {moreRight && <span aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent" />}
     </div>
   )
 }
@@ -129,3 +151,39 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
 export const Input = (p: InputHTMLAttributes<HTMLInputElement>) => <input {...p} className={`${fieldBase} min-h-10 ${p.className ?? ''}`} />
 export const Textarea = (p: TextareaHTMLAttributes<HTMLTextAreaElement>) => <textarea {...p} className={`${fieldBase} min-h-24 ${p.className ?? ''}`} />
 export const Select = (p: SelectHTMLAttributes<HTMLSelectElement>) => <select {...p} className={`${fieldBase} min-h-10 ${p.className ?? ''}`} />
+
+/** Overlapping avatar row for "who's here" signals. Names are shown to assistive tech via the label. */
+export function Faces({ names, total, label }: { names: string[]; total: number; label: string }) {
+  if (total === 0) return null
+  const shown = names.slice(0, 4)
+  return (
+    <div className="flex items-center" role="group" aria-label={label}>
+      <span className="flex -space-x-2">
+        {shown.map((n) => <span key={n} className="rounded-full ring-2 ring-surface"><Avatar name={n} size={28} /></span>)}
+      </span>
+      <span className="ml-2 text-xs text-muted-foreground">{label}</span>
+    </div>
+  )
+}
+
+/** Overflow "…" menu built on <details>: keyboard and screen-reader friendly, closes after a choice. */
+export function ActionMenu({ label = 'More actions', children }: { label?: string; children: ReactNode }) {
+  const ref = useRef<HTMLDetailsElement>(null)
+  return (
+    <details ref={ref} className="relative">
+      <summary aria-label={label} className="flex size-11 cursor-pointer list-none items-center justify-center rounded-lg text-muted-foreground hover:bg-surface-muted [&::-webkit-details-marker]:hidden">
+        <MoreHorizontal aria-hidden className="size-5" />
+      </summary>
+      <div role="menu" onClick={() => ref.current?.removeAttribute('open')} className="absolute right-0 z-10 mt-1 w-52 rounded-xl border border-border bg-surface p-1 shadow-md">
+        {children}
+      </div>
+    </details>
+  )
+}
+
+export function ActionMenuItem({ tone, className = '', ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { tone?: 'danger' }) {
+  return (
+    <button type="button" role="menuitem" {...props}
+      className={`flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left text-sm hover:bg-surface-muted ${tone === 'danger' ? 'text-danger' : ''} ${className}`} />
+  )
+}

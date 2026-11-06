@@ -26,7 +26,7 @@ export function WorkspacePage() {
   const { state, activeStudent } = useAppState()
   const [tab, setTab] = useState<Tab>('channels')
   const org = state.organizations.find((o) => o.id === organizationId)
-  if (!org) return <EmptyState title="Organization not found" />
+  if (!org) return <EmptyState title="Organization not found" action={<Link to="/organizations" className="text-sm font-semibold text-brand hover:underline">Browse organizations</Link>} />
 
   const membership = activeMembershipIn(state, activeStudent.id, org.id)
   const back = <Link to={`/organizations/${org.id}`} className="mb-4 inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground"><ArrowLeft aria-hidden className="size-4" /> {org.name}</Link>
